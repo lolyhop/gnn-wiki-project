@@ -2,36 +2,30 @@ import json
 import random
 import typing as tp
 
-import wikipediaapi
-
 import src.wiki_parser.constants as const
+from src.wiki_parser.wiki_api import WikipediaAPI
 
 
 def collect_articles() -> tp.List[const.Article]:
-    wiki = wikipediaapi.Wikipedia(language=const.LANGUAGE, user_agent=const.USER_AGENT)
+    wiki = WikipediaAPI(language=const.LANGUAGE, user_agent=const.USER_AGENT)
     pages: tp.Set[str] = set()
 
     # For each seed category save `ARTICLES_PER_SEED` article names
     for _category in const.SEED_CATEGORIES:
-        category = wiki.page(_category)
-        members = [p for p in category.categorymembers.values() if p.ns == 0]
-        random.shuffle(members)
-        pages.update(p.title for p in members[: const.ARTICLES_PER_SEED])
+        members = wiki.get_category_members(
+            category_name=_category,
+            limit=const.ARTICLES_PER_SEED,
+            shuffle=True,
+        )
+        pages.update(members)
 
     # Collect articles data
     articles: tp.List[const.Article] = []
     for title in pages:
-        page = wiki.page(title)
-        if not page.exists():
+        page = wiki.get_page(title)
+        if not page:
             continue
-
-        article: const.Article = {
-            "title": title,
-            "categories": list(page.categories.keys()),
-            "link": page.fullurl,
-            "text": page.text,
-        }
-        articles.append(article)
+        articles.append(page)
 
     return articles
 
