@@ -1,5 +1,6 @@
 import random
 import typing as tp
+
 import wikipediaapi
 
 import src.wiki_parser.constants as const

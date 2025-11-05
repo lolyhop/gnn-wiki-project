@@ -1,13 +1,13 @@
 import json
 import random
-import typing as tp
 import time
+import typing as tp
 from pathlib import Path
 
 from tqdm import tqdm
 
-from src.wiki_parser.wiki_api import WikipediaAPI
 import src.wiki_parser.constants as const
+from src.wiki_parser.wiki_api import WikipediaAPI
 
 
 class WikiGraphTraverser:
