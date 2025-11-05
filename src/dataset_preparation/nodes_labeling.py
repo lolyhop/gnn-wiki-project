@@ -24,9 +24,9 @@ def main() -> None:
     INPUT_GRAPH = Path("./data/wiki_graph_dedup.json")
     OUTPUT_VECTORIZER = Path("./data/tfidf_weights.json")
     OUTPUT_EMBEDDINGS = Path("./data/wiki_dedup_embds.json")
+
     print(f"[LOAD] Graph: {INPUT_GRAPH}")
     graph = load_graph(INPUT_GRAPH)
-
     nodes = graph["nodes"]
     titles: tp.List[str] = list(nodes.keys())
 
@@ -49,11 +49,15 @@ def main() -> None:
     joblib.dump(vectorizer, OUTPUT_VECTORIZER)
 
     print("[STEP] Converting embeddings...")
-    embeddings_dict: tp.Dict[str, tp.List[float]] = {}
+    embeddings_dict: tp.Dict[str, tp.Dict[str, tp.Any]] = {}
 
     for i, title in enumerate(titles):
         vec = X[i].toarray()[0].tolist()
-        embeddings_dict[title] = vec
+        categories = nodes[title].get("categories", [])
+        embeddings_dict[title] = {
+            "embedding": vec,
+            "categories": categories,
+        }
 
     print(f"[SAVE] Saving embeddings -> {OUTPUT_EMBEDDINGS}")
     with open(OUTPUT_EMBEDDINGS, "w", encoding="utf-8") as f:
