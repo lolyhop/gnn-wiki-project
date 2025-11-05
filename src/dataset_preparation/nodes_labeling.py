@@ -22,8 +22,8 @@ def build_raw_label(node: tp.Dict[str, tp.Any]) -> str:
 
 def main() -> None:
     INPUT_GRAPH = Path("./data/wiki_graph_dedup.json")
-    OUTPUT_VECTORIZER = Path(".data/tfidf_weights.json")
-    OUTPUT_EMBEDDINGS = Path(".data/wiki_dedup_embds.json")
+    OUTPUT_VECTORIZER = Path("./data/tfidf_weights.json")
+    OUTPUT_EMBEDDINGS = Path("./data/wiki_dedup_embds.json")
     print(f"[LOAD] Graph: {INPUT_GRAPH}")
     graph = load_graph(INPUT_GRAPH)
 
