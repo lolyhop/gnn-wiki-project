@@ -80,7 +80,6 @@ class WikiGraphTraverser:
         """Traverse Wikipedia starting from given seed articles."""
         if len(self.graph["nodes"]) > 0:
             all_titles = set(self.graph["nodes"].keys())
-            # frontier = nodes that have no outgoing edges in saved data (i.e., probably last batch)
             frontier = [
                 t
                 for t in all_titles
