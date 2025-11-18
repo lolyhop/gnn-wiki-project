@@ -1,11 +1,11 @@
-import torch
 import json
 import typing as tp
 from pathlib import Path
 
-from tqdm import tqdm
-from sentence_transformers import SentenceTransformer, util
 import numpy as np
+import torch
+from sentence_transformers import SentenceTransformer, util
+from tqdm import tqdm
 
 import src.dataset_preparation.constants as const
 
