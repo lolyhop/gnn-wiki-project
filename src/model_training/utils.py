@@ -10,8 +10,8 @@ def read_and_split_inductive(
     assert sum(ratios) == 1.0, "Ratios must sum to 1.0"
 
     print(f"Loading data from {path}...")
-    loaded_content = torch.load(path)
-    data = loaded_content[0]
+    loaded_content = torch.load(path, weights_only=False)
+    data = loaded_content
 
     num_nodes = data.num_nodes
     print(f"Original graph: {num_nodes} nodes, {data.num_edges} edges")
@@ -34,17 +34,17 @@ def read_and_split_inductive(
     # 3. Create induced subgraphs
 
     # Train
-    edge_index_train = subgraph(train_idx, data.edge_index, relabel_nodes=True)
+    edge_index_train, _ = subgraph(train_idx, data.edge_index, relabel_nodes=True)
     train_data = Data(
         x=data.x[train_idx], edge_index=edge_index_train, y=data.y[train_idx]
     )
 
     # Val
-    edge_index_val = subgraph(val_idx, data.edge_index, relabel_nodes=True)
+    edge_index_val, _ = subgraph(val_idx, data.edge_index, relabel_nodes=True)
     val_data = Data(x=data.x[val_idx], edge_index=edge_index_val, y=data.y[val_idx])
 
     # Test
-    edge_index_test = subgraph(test_idx, data.edge_index, relabel_nodes=True)
+    edge_index_test, _ = subgraph(test_idx, data.edge_index, relabel_nodes=True)
     test_data = Data(x=data.x[test_idx], edge_index=edge_index_test, y=data.y[test_idx])
 
     # Stats
