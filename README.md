@@ -1,4 +1,7 @@
+Modeling the Wikipedia IT Graph with GATs
+
 ____
+
 # Introduction
 
 Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** become powerful.
