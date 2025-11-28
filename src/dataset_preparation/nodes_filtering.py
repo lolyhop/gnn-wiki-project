@@ -27,12 +27,12 @@ def extract_list(answer):
 
 def main() -> None:
     # LLM filtered noisy categories
-    path = "../data/filtered_categories.csv"
+    path = "./data/filtered_categories.csv"
     df = pd.read_csv(path)
     df["valid_idx"] = df["deepseek_answer"].apply(extract_list)
 
     graph = json.loads(
-        open("../data/wiki_graph_dedup.json", "r").read()
+        open("./data/wiki_graph_dedup.json", "r").read()
     )  # read the graph
 
     for _, row in df.iterrows():
@@ -72,7 +72,7 @@ def main() -> None:
     print(f"[INFO] Remaining edges after cleanup: {len(graph['edges'])}")
 
     # Save graph with filtered categories
-    with open("../data/wiki_graph_filtered_v2.json", "w", encoding="utf-8") as f:
+    with open("./data/wiki_graph_filtered_v2.json", "w", encoding="utf-8") as f:
         json.dump(graph, f, ensure_ascii=False, indent=2)
 
 

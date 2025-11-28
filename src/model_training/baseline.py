@@ -10,7 +10,7 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
     classification_report,
 )
-from src.model_training.utils import read_and_split_inductive
+from src.model_training.utils import read_and_split
 
 
 class MLP(nn.Module):
@@ -97,7 +97,7 @@ def save_plots(history, filename="baseline_metrics.png"):
 
 def run_baseline_training():
     # Config
-    PATH = "./data/wiki_it_graph.pt"
+    PATH = "./data/wiki_it_graph_scibert_feats.pt"
     PLOT_PATH = "plots"
     os.makedirs(PLOT_PATH, exist_ok=True)
 
@@ -113,20 +113,20 @@ def run_baseline_training():
     print(f"Using device: {DEVICE}")
 
     # Load data
-    train_data, val_data, test_data = read_and_split_inductive(PATH, seed=42)
+    data = read_and_split(PATH, seed=42)
 
     # Create TensorDatasets
-    train_dataset = TensorDataset(train_data.x, train_data.y)
-    val_dataset = TensorDataset(val_data.x, val_data.y)
-    test_dataset = TensorDataset(test_data.x, test_data.y)
+    train_dataset = TensorDataset(data.x[data.train_mask], data.y[data.train_mask])
+    val_dataset = TensorDataset(data.x[data.val_mask], data.y[data.val_mask])
+    test_dataset = TensorDataset(data.x[data.test_mask], data.y[data.test_mask])
 
     # Create DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    num_features = train_data.x.shape[1]
-    num_classes = len(torch.unique(train_data.y))
+    num_features = data.x.shape[1]
+    num_classes = len(torch.unique(data.y))
 
     print(f"Input Dim: {num_features}, Classes: {num_classes}")
     print(f"Train batches: {len(train_loader)}")
