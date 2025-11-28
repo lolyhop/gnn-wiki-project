@@ -1,4 +1,4 @@
-Modeling the Wikipedia IT Graph with GATs
+# **Modeling the Wikipedia IT Graph with GATs**
 
 ____
 
