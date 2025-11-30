@@ -1,7 +1,4 @@
-# **Modeling the Wikipedia IT Graph with GATs**
-
 ____
-
 # Introduction
 
 Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** become powerful.
@@ -12,7 +9,7 @@ Along the way, we compare graph-based learning with more classical deep learning
 
  <center>
  <figure>
-  <img src="docs/imgs/intro_image.png" alt="" style="width:100%; height:auto; border:1px solid black; border-radius: 1px;">
+  <img src="intro_image.png" alt="" style="width:100%; height:auto; border:1px solid black; border-radius: 1px;">
   <figcaption><i>Figure 1: Example of subgraph used in our dataset.</i></figcaption>
 </figure>
 </center>
@@ -21,13 +18,13 @@ ___
 
 # Dataset Collection
 
-While academic benchmarks like Cora or PubMed are great for testing models, they don't reflect the messy reality of data engineering. To demonstrate a true **end-to-end ML pipeline** — from data parsing to model deployment — we decided to build our own dataset from scratch.
+While academic benchmarks like [Cora](https://www.geeksforgeeks.org/machine-learning/cora-dataset/) or [PubMed](http://er.tacc.utexas.edu/datasets/ped) are great for testing models, they don't reflect the messy reality of data engineering. To demonstrate a true **end-to-end ML pipeline** — from data parsing to model deployment — we decided to build our own dataset from scratch.
 
 We focused on the **Information Technology (IT)** domain of Wikipedia. Our objective was to construct a graph where nodes represent articles and edges represent hyperlinks between them.
 
 ## 1. Defining the Scope
 
-You can’t simply "download Wikipedia." It is too massive and disconnected. To create a coherent dataset, we needed specific starting points. We manually curated a list of root categories that represent the broad pillars of the IT landscape, ranging from theoretical foundations to applied engineering:
+You can’t simply “download Wikipedia.” It is too massive and disconnected. To create a coherent dataset, we needed specific starting points, a.k.a. seed articles. We manually curated a list of root categories covering the broad pillars of the IT landscape, from theoretical foundations to applied engineering:
 
 ```python
 SEED_CATEGORIES = [
@@ -41,15 +38,20 @@ SEED_CATEGORIES = [
 ]
 ```
 
-From each of these categories, we fetched the full list of member pages and **randomly sampled 30 articles**. These served as our seed nodes — the diverse, distributed centers from which our graph would grow.
+From each category, we fetched the full list of member pages and **randomly sampled 30 articles**. These served as our seed nodes — diverse, distributed centers from which our graph would grow.
 
 ## 2. Crawling the Graph
 
 Starting from these seed nodes, we expanded the dataset using a **controlled Breadth-First Search (BFS)**. For every article visited, we extracted links to other Wikipedia pages to form our edges.
 
-However, without strict limits, a crawler starting at "Artificial Intelligence" could easily drift into "Philosophy" and eventually "Ancient Greece" within a few hops. To keep the graph domain-focused, we imposed constraints: `MAX_DEPTH=20` and `MAX_NODES=20,000`.
->You can find the implementation of the crawler in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
+However, without strict limits, a crawler starting at "Artificial Intelligence" could easily drift into "Philosophy" and eventually "Ancient Greece" within a few hops. To keep the graph domain-focused, we imposed constraints:
+```python
+MAX_DEPTH = 20           # maximum BFS depth from a seed node
+MAX_NODES = 20_000       # maximum total nodes in the graph
+MAX_LINKS_PER_PAGE = 12  # maximum outgoing links followed per page
+```
 
+>You can find the implementation of the crawler in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
 
 ## 3. Filtering the Noise
 
@@ -100,7 +102,7 @@ The resulting Taxonomy:
 
  <center>
  <figure>
-  <img src="docs/imgs/taxonomy_design.png" alt="" style="width:100%; height:auto">
+  <img src="taxonomy_design.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 2: Taxonomy design process.</i></figcaption>
 </figure>
 </center>
@@ -108,16 +110,16 @@ The resulting Taxonomy:
 ### Stage 2: Semantic Retrieval Classification
 
 To map articles to these classes, we treated classification as a **semantic retrieval task:**
-1. We generated a detailed textual description for each of the 7 classes;
+1. We generated a detailed textual description for each of the 7 classes (you can find class descriptions [here](https://github.com/lolyhop/gnn-wiki-project/blob/main/src/dataset_preparation/constants.py));
 2. For every article, we concatenated its _list of categories_ into a single string. We intentionally used categories (metadata) rather than the raw text here to capture how Wikipedia editors organize the content;
-3. We embedded both the **Class Descriptions** and the **Article Categories** using the `google/embedding-gemma-300m` model;
+3. We embedded both the **Class Descriptions** and the **Article Categories** using the [`google/embedding-gemma-300m`](https://huggingface.co/google/embeddinggemma-300m) model;
 4. We calculated the **Cosine Similarity** between each article and the class descriptions, assigning the most probable class.
 
 If the highest similarity score was below a strict threshold, the article was assigned to an **"Other"** class, filtering out ambiguous content.
 
  <center>
  <figure>
-  <img src="docs/imgs/semantic_class_retrieval.png" alt="" style="width:100%; height:auto">
+  <img src="semantic_class_retrieval.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 3: Class Retrieval Schema.</i></figcaption>
 </figure>
 </center>
@@ -130,13 +132,13 @@ We took the predictions from Stage 2 and fed them — along with the article’s
 
  <center>
  <figure>
-  <img src="docs/imgs/validation.png" alt="" style="width:100%; height:auto">
+  <img src="validation.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 4: LLM validating the assigned class.</i></figcaption>
 </figure>
 </center>
 <center>
  <figure>
-  <img src="docs/imgs/correction.png" alt="" style="width:100%; height:auto">
+  <img src="correction.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 5: LLM correcting the assigned class.</i></figcaption>
 </figure>
 </center>
@@ -155,7 +157,7 @@ To preserve this information, we applied a **2-hop connection rule**: if the ori
 
 <center>
  <figure>
-  <img src="docs/imgs/heuristic_reconstruction.png" alt="" style="width:100%; height:auto">
+  <img src="heuristic_reconstruction.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 6: Reconstruction of lost edges using heuristic rule.</i></figcaption>
 </figure>
 </center>
@@ -289,7 +291,7 @@ Finally, we check the class distribution to understand the difficulty of the tas
 
  <center>
  <figure>
-  <img src="docs/imgs/class_dist.png" alt="" style="width:100%; height:auto">
+  <img src="class_dist.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 7: Distribution of target class.</i></figcaption>
 </figure>
 </center>
@@ -300,7 +302,7 @@ During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-
 
  <center>
  <figure>
-  <img src="docs/imgs/final_graph_structure.png" alt="" style="width:100%; height:auto">
+  <img src="final_graph_structure.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 8: The structure of final Wikipedia IT graph.</i></figcaption>
 </figure>
 </center>
@@ -316,14 +318,14 @@ There are two main strategies to handle this:
 
 <center>
  <figure>
-  <img src="docs/imgs/real_inductive_split.jpg" alt="" style="width:100%; height:auto">
+  <img src="real_inductive_split.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 9: Inductive data split example.</i></figcaption>
 </figure>
 </center>
 
 <center>
  <figure>
-  <img src="docs/imgs/inductive_split.jpg" alt="" style="width:100%; height:auto">
+  <img src="inductive_split.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 10: Transductive data split example.</i></figcaption>
 </figure>
 </center>
@@ -396,14 +398,14 @@ By repeating this process (e.g., 2 layers), a node can gather information from i
 
 <center>
  <figure>
-  <img src="docs/imgs/msg_passing.jpg" alt="" style="width:100%; height:auto">
+  <img src="msg_passing.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 11: 1-hop message passing overview.</i></figcaption>
 </figure>
 </center>
 
 <center>
  <figure>
-  <img src="docs/imgs/gnn_example.jpg" alt="" style="width:100%; height:auto">
+  <img src="gnn_example.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 12: 2-hop message passing overview.</i></figcaption>
 </figure>
 </center>
@@ -423,7 +425,7 @@ First, we project the node features into a hidden space. This is a standard line
 
 <center>
  <figure>
-  <img src="docs/imgs/lin.jpg" alt="" style="width:100%; height:auto">
+  <img src="lin.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 13: Linear transformation of node features.</i></figcaption>
 </figure>
 </center>
@@ -462,7 +464,7 @@ This allows us to pre-calculate a "source score" and a "target score" for every 
 
 <center>
  <figure>
-  <img src="docs/imgs/attn_v2.jpg" alt="" style="width:100%; height:auto">
+  <img src="attn_v2.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 14: New hidden state calculation.</i></figcaption>
 </figure>
 </center>
@@ -592,3 +594,319 @@ class GAT(torch.nn.Module):
         
         return x
 ```
+
+## Training Loop
+
+With the data prepared and the GAT architecture defined, we are ready to train the model. In this section, we will implement the training loop.
+
+> You can find the fully working code for GAT training in our **[Google Colab Notebook](https://colab.research.google.com/drive/1HtTH3sfeoHuLtG2Eb3iSBexwzfNZgO9N?usp=sharing)**.
+
+We will break the training process down into four distinct steps: Setup, Data Loading, The Train Step, and The Evaluation.
+
+### 1. Setup
+
+First, we initialize the model. We know our input features are 768-dimensional (from SciBERT) and we have 8 target classes. We move both the data and the model to the GPU if available.
+
+```python
+import torch
+import torch.nn as nn
+from torch_geometric.nn import GATConv
+from torch_geometric.loader import NeighborLoader
+from sklearn.metrics import accuracy_score, f1_score
+
+# Check for GPU
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+data = data.to(device)
+
+# Initialize GAT
+model = GAT(in_channels=768, hidden_channels=32, out_channels=8, heads=8).to(device)
+
+# Setup Optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0003, weight_decay=5e-4)
+criterion = nn.CrossEntropyLoss()
+```
+
+### 2. Data Loading
+
+This is the most critical part of scalable Graph ML. Instead of loading independent samples, `NeighborLoader` creates mini-batches by sampling **subgraphs**.
+
+- `num_neighbors=[10, 10]`: For every target node, we sample 10 neighbors at 1-hop and 10 neighbors at 2-hops.
+- `input_nodes`: We tell the loader to only select **Training Nodes** as the center of our batches.
+
+```python
+train_loader = NeighborLoader(
+    data,
+    num_neighbors=[10, 10], # Sample 10 neighbors at each hop
+    batch_size=16,
+    input_nodes=data.train_mask, # Only train on training nodes
+    shuffle=True
+)
+```
+
+### 3. The Training Step
+
+The training logic in PyG has one specific quirk: **Target Nodes vs. Sampled Nodes**.
+
+When the loader returns a `batch`, it contains the target nodes (the 16 we want to classify) _plus_ all the neighbors we sampled to form the structure. By convention, `NeighborLoader` places the target nodes **at the very beginning** of the batch.
+
+Therefore, when calculating loss, we must **slice** the output to only compare predictions for the first `batch_size` nodes.
+
+```python
+def train():
+    model.train()
+    total_loss = 0
+    
+    for batch in train_loader:
+        batch = batch.to(device)
+        optimizer.zero_grad()
+        
+        # 1. Forward Pass
+        # Pass the whole subgraph to the model
+        out = model(batch.x, batch.edge_index)
+        
+        # 2. Slicing
+        # We strictly calculate loss on the 'batch_size' target nodes.
+        # The remaining nodes are just there to provide context (message passing).
+        target_out = out[:batch.batch_size]
+        target_y = batch.y[:batch.batch_size]
+        
+        # 3. Backprop
+        loss = criterion(target_out, target_y)
+        loss.backward()
+        optimizer.step()
+        
+        total_loss += loss.item()
+        
+    return total_loss / len(train_loader)
+```
+
+### 4. The Evaluation Step
+
+To check how well the model is learning, we define a simple evaluation function. We turn off gradient calculation (`@torch.no_grad`) and compare the model's predictions against the true labels using the **Validation Mask** we created earlier.
+
+```python
+from sklearn.metrics import precision_recall_fscore_support
+
+@torch.no_grad()
+def evaluate(model, data, mask):
+    model.eval()
+    
+    # 1. Forward pass on the whole graph
+    out = model(data.x, data.edge_index)
+
+    # 2. Select only the nodes in the current mask (Val or Test)
+    pred = out[mask].argmax(dim=1)
+    y_true = data.y[mask]
+
+    # 3. Compute Metrics
+    y_true = y_true.detach().cpu().numpy()
+    y_pred = pred.detach().cpu().numpy()
+    
+    acc = accuracy_score(y_true, y_pred)
+    p, r, f1, _ = precision_recall_fscore_support(
+        y_true, y_pred, average="weighted", zero_division=0
+    )
+    
+    return acc, p, r, f1
+```
+
+### 5. The Main Loop
+
+Finally, to start the training, we simply loop through the epochs and call the `train()` and `evaluate()` functions we defined above.
+
+```python
+def run_training(epochs=100):
+    print(f"Starting training on {device}...")
+    
+    # Metric history for plotting later
+    history = {"train_loss": [], "val_f1": []}
+    best_val_f1 = 0.0
+    
+    for epoch in range(1, epochs + 1):
+        # 1. Train Step
+        avg_loss = train()
+            
+        # 2. Validate Step
+        val_acc, val_p, val_r, val_f1 = evaluate(data.val_mask)
+        
+        # Track best performance
+        if val_f1 > best_val_f1:
+            best_val_f1 = val_f1
+        
+        # Log metrics
+        history["train_loss"].append(avg_loss)
+        history["val_f1"].append(val_f1)
+        
+        if epoch % 10 == 0:
+            print(f"Epoch {epoch:03d} | Loss: {avg_loss:.4f} | Val F1: {val_f1:.4f}")
+            
+    print(f"\nTraining Finished. Best Val F1: {best_val_f1:.4f}")
+    
+    # Evaluate GAT performance on the test set
+    print("\nEvaluating on Test Set...")
+    test_acc, test_p, test_r, test_f1 = evaluate(data.test_mask)
+    print(f"Test Accuracy: {test_acc:.4f} | Test F1: {test_f1:.4f}")
+
+# Run the training
+run_training(epochs=100)
+```
+
+## Training Results
+
+After training our GAT for 100 epochs, we evaluated its performance on the held-out Test set.
+
+The results are highly encouraging. The model successfully learned to navigate the complex IT landscape, achieving a **Weighted F1-Score of 0.8869**. This confirms that our pipeline — from crawling Wikipedia to reconstructing the graph structure — produced a high-quality dataset suitable for deep learning.
+
+### 1. GAT Performance
+
+Below are the final metrics for the GAT model on the Test set:
+
+| Metric                 | Score      |
+| :--------------------- | :--------- |
+| **Accuracy**           | **0.8869** |
+| **Weighted F1-Score**  | **0.8869** |
+| **Weighted Precision** | **0.8898** |
+| **Weighted Recall**    | **0.8869** |
+
+The model performs well on the dominant classes, achieving high F1-score. Even on harder, less frequent topics, the attention mechanism allowed the model to aggregate sufficient context from neighbors to make correct predictions.
+
+Below is the detailed performance breakdown per class:
+
+| Class Name | Precision | Recall | F1-Score | Samples |
+| :--- | :---: | :---: | :---: | :---: |
+| **Other** (Noise/General) | 0.94 | 0.95 | **0.95** | 347 |
+| **Data Management** | 0.87 | 0.90 | **0.88** | 51 |
+| **Systems & Hardware** | 0.90 | 0.78 | **0.84** | 23 |
+| **Programming & Software** | 0.86 | 0.80 | **0.83** | 75 |
+| **Networking & Protocols** | 0.90 | 0.73 | **0.81** | 26 |
+| **AI & Machine Learning** | 0.77 | 0.74 | **0.75** | 31 |
+| **Computer Security** | 0.80 | 0.71 | **0.75** | 17 |
+| **Math & Formal Methods** | 0.66 | 0.83 | **0.73** | 40 |
+
+### 2. Validation against Text-Only Baseline
+
+To verify that the **graph structure** itself provided value, we trained a text-only MLP baseline on the exact same data.
+
+> You can check the training script and reproducibility of the baseline in our **[MLP Training Colab Notebook](https://colab.research.google.com/drive/1P3bQPCN0sHZVXfhtaTaeC9YE9cChrkU1?usp=sharing)**.
+
+Comparing the two reveals that adding the graph topology consistently improved performance. We see a clear boost of **~2.0%** across global metrics, which is significant given the high quality of the input text features.
+
+| Metric              | MLP (Text Only) | GAT (Graph + Text) |                 Improvement                 |
+| :------------------ | :-------------: | :----------------: | :-----------------------------------------: |
+| **Accuracy**        |     0.8672      |     **0.8869**     | <span style="color:green">**+0.0197**</span> |
+| **Weighted F1**     |     0.8668      |     **0.8869**     | <span style="color:green">**+0.0201**</span> |
+
+#### Where did the Graph help?
+
+The graph structure acted as a powerful context provider. We observe improvements (or stability) in **all 8 classes**. The biggest gains occurred in complex technical domains like **AI** and **Programming**, proving that neighbors help clarify the topic when the text is dense or ambiguous.
+
+| Class Name (Count) | MLP F1 | GAT F1 | Gain |
+| :--- | :---: | :---: | :---: |
+| **AI & Machine Learning** (31) | 0.69 | **0.75** | <span style="color:green">**+0.06**</span> |
+| **Programming & Software** (75) | 0.78 | **0.83** | <span style="color:green">**+0.05**</span> |
+| **Data Management** (51) | 0.84 | **0.88** | <span style="color:green">**+0.04**</span> |
+| **Systems & Hardware** (23) | 0.81 | **0.84** | <span style="color:green">**+0.03**</span> |
+| **Math & Formal Methods** (40) | 0.71 | **0.73** | <span style="color:green">**+0.02**</span> |
+| **Other** (347) | 0.94 | **0.95** | <span style="color:green">**+0.01**</span> |
+| **Computer Security** (17) | 0.74 | **0.75** | <span style="color:green">**+0.01**</span> |
+| **Networking & Protocols** (26) | **0.81** | **0.81** | <span style="color:gray">= 0.00</span> |
+
+#### Why isn't the difference larger?
+
+The gap between GAT and MLP is positive (*~2.0%*), but not massive. 
+
+We used **SciBERT** embeddings, which are extremely powerful feature extractors. In the Wikipedia IT domain, the text itself contains about 85-90% of the signal needed for classification. The graph acts as a **refiner**, correcting errors in ambiguous cases. If the task relied more heavily on topology rather than content, the structural advantage of the GAT would be much more pronounced.
+
+#### Visualizing the Latent Space
+
+Numbers are great, but they can be abstract. To understand what our GAT learned, we extracted the **node embeddings** from the model's hidden layer. These 1024-dimensional vectors represent the model's "understanding" of every Wikipedia article.
+
+We projected these vectors into 2D space using **UMAP**.
+
+<center>
+ <figure>
+  <img src="latent_space.jpg" alt="UMAP projection of node embeddings" style="width:100%; height:auto; border-radius: 5px;">
+  <figcaption><i>Figure 15: UMAP projection of the learned graph embeddings.</i></figcaption>
+</figure>
+</center>
+
+The visualization confirms that the GNN successfully pulled semantically related articles together, creating distinct **"islands of meaning"**:
+
+1.  **Separation of Noise:** The massive red cloud on the right represents the **"Other"** class. The model successfully segregated general knowledge from specific IT domains;
+2.  **Technical Clusters:** Distinct topics like **Programming** (Green), **Data Management** (Purple), and **Hardware** (Pink) form tight, well-separated clusters on the left;
+3.  **Semantic Proximity:** Notice how related fields are close to each other (e.g., *Networking* is adjacent to *Hardware*), mirroring the real-world overlaps in these technologies.
+
+> You can run this visualization yourself using our trained model in the **[Inference & UMAP Notebook](https://colab.research.google.com/drive/1muxiJ6ZxMrLe4IXT3P3VPxv2xrEGlheo?usp=sharing)**.
+
+## Bonus: Graph-Powered Recommendations
+
+Classification is useful, but the **embeddings** we trained offer much more potential. As we saw in the UMAP visualization, the GAT places semantically related articles close to each other in the vector space. We can leverage this property to build a **Semantic Recommendation System**.
+
+To demonstrate this, we built an interactive web application using **Streamlit** library. It visualizes the local neighborhood of an article and uses the GAT embeddings to suggest "What to read next."
+
+<center>
+ <figure>
+  <img src="graph_explorer_fast_v2.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
+  <figcaption><i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i></figcaption>
+</figure>
+</center>
+
+### How it works under the hood
+
+The logic is surprisingly simple. Since we have a rich numerical representation for every node, recommendation becomes a **Vector Search** problem. 
+
+1. **Inference:** First, we extract the hidden state $\mathbf{h}_i$ for every node $i$ from the GAT's model. This vector encodes both the text content (from SciBERT) and the structural context (from the Graph).
+
+   $$ \mathbf{h}_{i} = \text{GAT}(\mathbf{x}_i, \mathcal{N}(i)) \in \mathbb{R}^{d} $$
+
+2. **Similarity Calculation:** When a user selects a target article $u$ (e.g., *"Neural Network"*), we want to find the most similar article $v$ in our database. We calculate the **Cosine Similarity** between their vectors.
+
+   $$ \text{sim}(\mathbf{h}_u, \mathbf{h}_v) = \frac{\mathbf{h}_u \cdot \mathbf{h}_v}{\|\mathbf{h}_u\| \|\mathbf{h}_v\|} = \cos(\theta) $$
+
+   Where:
+   *   $\mathbf{h}_u \cdot \mathbf{h}_v$ is the dot product (measuring overlap).
+   *   $\|\mathbf{h}\|$ is the magnitude (normalizing for vector length).
+   *   $\theta$ is the angle between the vectors.
+
+3. **Ranking:** We compute this score for all nodes in the graph and return the top $k$ results with the highest similarity score.
+   $$ \text{Recommendations} = \text{Select top } k \text{ nodes with highest } \text{Score}(v) $$
+
+By using graph-aware embeddings, this system can recommend articles that are conceptually linked even if they don't share identical keywords.
+
+___
+
+# Summary
+
+In this tutorial, we successfully built an **end-to-end Graph Machine Learning project**, going all the way from raw web scraping to a deployed AI application.
+
+Here is a summary of what we achieved:
+
+1.  **Built a Custom Dataset:** We didn't rely on pre-packaged data. We crawled Wikipedia, defined our own taxonomy, filtered noise using LLMs, and applied graph reconstruction hacks (like KNN and 2-hop connections) to build a dense, learning-ready graph;
+2.  **Mastered GNN Training:** We walked through the theory of Graph Attention Networks (GAT) and implemented a model training pipeline;
+3.  **Validated Performance:** By comparing our GAT against a text-only MLP, we proved that structural information matters. Adding the graph topology yielded a **~2.0% performance boost**;
+4.  **From Model to Product:** Finally, we didn't stop at validation metrics. We extracted the learned embeddings and built a **Semantic Search Engine**, demonstrating how GNNs can be used to power real-world recommendation systems in a user-friendly interface.
+
+We hope this blog post was helpful and that you managed to find something interesting or new for yourself today. Thank you for reading and being with us on this journey!
+
+___
+
+# Resources
+
+**Project Assets:**
+*   **[Project Repository]**: [GitHub link](https://github.com/lolyhop/gnn-wiki-project)
+*   **[Dataset Download]**: [Google Drive Link](https://drive.google.com/drive/folders/1meiA2D5PodBqxQUNpKZLzJsVJWprVvcR?usp=share_link)
+*   **[Colab: Wiki Parsing]**: [Open Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)
+*   **[Colab: PyG Data Preparation]**: [Open Notebook](https://colab.research.google.com/drive/1aXbaBVGTfauaGU-8SEtjwcFw3JxKjd1d?usp=sharing)
+*   **[Colab: GAT Training]**: [Open Notebook](https://colab.research.google.com/drive/1HtTH3sfeoHuLtG2Eb3iSBexwzfNZgO9N?usp=sharing)
+*   **[Colab: MLP Baseline]**: [Open Notebook](https://colab.research.google.com/drive/1P3bQPCN0sHZVXfhtaTaeC9YE9cChrkU1?usp=sharing)
+*   **[Colab: Inference & UMAP]**: [Open Notebook](https://colab.research.google.com/drive/1muxiJ6ZxMrLe4IXT3P3VPxv2xrEGlheo?usp=sharing)
+
+**Papers & Technical Reports:**
+*   **[Graph Attention Networks (GAT)]**: Veličković et al., 2018. The original paper introducing the attention mechanism. ([arXiv](https://arxiv.org/abs/1710.10903))
+*   **[PyTorch Geometric (PyG)]**: Fey & Lenssen, 2019. Fast Geometric Deep Learning on top of PyTorch. ([arXiv](https://arxiv.org/abs/1903.02428))
+*   **[SciBERT: Pretrained Language Model for Science]**: Beltagy et al., 2019. The model we used for node feature extraction. ([arXiv](https://arxiv.org/abs/1903.10676))
+*   **[UMAP: Uniform Manifold Approximation]**: McInnes et al., 2018. The dimensionality reduction technique used for visualization. ([arXiv](https://arxiv.org/abs/1802.03426))
+
+**Further Reading:**
+*   **[A Gentle Introduction to GNNs]**: An interactive guide by Distill.pub explaining Message Passing. ([Link](https://distill.pub/2021/gnn-intro/))
+*   **[Splitting Strategies in Graph ML]**: Using masks vs. cutting edges (Transductive vs Inductive). ([PyG Documentation](https://pytorch-geometric.readthedocs.io/en/latest/get_started/introduction.html#data-handling-of-graphs))
