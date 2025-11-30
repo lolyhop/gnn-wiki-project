@@ -849,7 +849,7 @@ To demonstrate this, we built an interactive web application using **Streamlit**
 
 <center>
  <figure>
-  <img src="docs/imgs/graph_explorer_fast_v2.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
+  <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
   <figcaption><i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i></figcaption>
 </figure>
 </center>
