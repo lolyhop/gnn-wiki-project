@@ -17,6 +17,7 @@ Along the way, we compare graph-based learning with more classical deep learning
 </figure>
 </center>
 
+
 ___
 
 # Dataset Collection
@@ -110,6 +111,7 @@ The resulting Taxonomy:
 </figure>
 </center>
 
+
 ### Stage 2: Semantic Retrieval Classification
 
 To map articles to these classes, we treated classification as a **semantic retrieval task:**
@@ -127,6 +129,7 @@ If the highest similarity score was below a strict threshold, the article was as
 </figure>
 </center>
 
+
 ### Stage 3: LLM-as-a-judge Refinement
 
 While semantic similarity is powerful, it lacks nuance. To ensure our ground truth was high-quality, we applied an **LLM-as-a-judge** step.
@@ -139,12 +142,15 @@ We took the predictions from Stage 2 and fed them — along with the article’s
   <figcaption><i>Figure 4: LLM validating the assigned class.</i></figcaption>
 </figure>
 </center>
+
+
 <center>
  <figure>
   <img src="docs/imgs/correction.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 5: LLM correcting the assigned class.</i></figcaption>
 </figure>
 </center>
+
 
 This process yielded a high-quality dataset with **8 distinct classes** (7 topics + "Other"). We now have the nodes, the text, and the labels. The final piece of the puzzle is **Graph Reconstruction**: restoring the connections we lost during cleaning and preparing the features for our GNN.
 
@@ -164,6 +170,7 @@ To preserve this information, we applied a **2-hop connection rule**: if the ori
   <figcaption><i>Figure 6: Reconstruction of lost edges using heuristic rule.</i></figcaption>
 </figure>
 </center>
+
 
 ### Semantic Graph Densification
 
@@ -299,6 +306,7 @@ Finally, we check the class distribution to understand the difficulty of the tas
 </figure>
 </center>
 
+
 The dataset is heavily imbalanced. Approximately 50% of the articles belong to the **"Other"** category. A trivial model predicting "Other" for everything would achieve 50% accuracy.
 
 During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-Score** over raw accuracy to ensure the model actually learns the minority classes (like *AI & ML* or *Networking & Protocols*).
@@ -309,6 +317,7 @@ During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-
   <figcaption><i>Figure 8: The structure of final Wikipedia IT graph.</i></figcaption>
 </figure>
 </center>
+
 
 ### Training Strategy: The Splitting Dilemma
 
@@ -326,12 +335,14 @@ There are two main strategies to handle this:
 </figure>
 </center>
 
+
 <center>
  <figure>
   <img src="docs/imgs/inductive_split.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 10: Transductive data split example.</i></figcaption>
 </figure>
 </center>
+
 
 We implemented the **Transductive** strategy using the following code to generate masks:
 ```python
@@ -406,12 +417,15 @@ By repeating this process (e.g., 2 layers), a node can gather information from i
 </figure>
 </center>
 
+
 <center>
  <figure>
   <img src="docs/imgs/gnn_example.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 12: 2-hop message passing overview.</i></figcaption>
 </figure>
 </center>
+
+
 ## Graph Attention Network
 
 **Graph Attention Networks** represent a major evolution in graph deep learning. While standard models aggregate messages from all neighbors equally, GAT introduces a **learnable attention mechanism**. This enables every node to dynamically decide which neighbors are important and which should be ignored by assigning a specific weight to each connection.
@@ -432,6 +446,7 @@ First, we project the node features into a hidden space. This is a standard line
   <figcaption><i>Figure 13: Linear transformation of node features.</i></figcaption>
 </figure>
 </center>
+
 
 ```python
 import torch
@@ -471,6 +486,7 @@ This allows us to pre-calculate a "source score" and a "target score" for every 
   <figcaption><i>Figure 14: New hidden state calculation.</i></figcaption>
 </figure>
 </center>
+
 
 ```python
 # 1. Define attention vector 'a' split into Source and Target parts
@@ -541,8 +557,6 @@ To fix this, real GAT implementations add a **Self-Loop**.
 1.  We conceptually add the target node to its own list of neighbors.
 2.  The neighborhood becomes: $[i, j_1, j_2, j_3]$.
 3.  The model calculates an attention score $\alpha_{ii}$ for itself.
-
-This allows the node to dynamically decide: *Should I keep my own features (high $\alpha_{ii}$) or copy my neighbors (low $\alpha_{ii}$)?*
 
 > In PyTorch Geometric you don't need to do this manually. The `GATConv` layer adds these self-loops automatically by default (`add_self_loops=True`).
 
@@ -832,6 +846,7 @@ We projected these vectors into 2D space using **UMAP**.
   <figcaption><i>Figure 15: UMAP projection of the learned graph embeddings.</i></figcaption>
 </figure>
 </center>
+
 
 The visualization confirms that the GNN successfully pulled semantically related articles together, creating distinct **"islands of meaning"**:
 
