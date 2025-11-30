@@ -120,7 +120,7 @@ To map articles to these classes, we treated classification as a **semantic retr
 If the highest similarity score was below a strict threshold, the article was assigned to an **"Other"** class, filtering out ambiguous content.
 
 <p align="center">
-  <img src="docs/imgs/semantic_class_retrieval.png" alt="" width="600">
+  <img src="docs/imgs/semantic_class_retrieval.png" alt="">
   <br>
   <i>Figure 3: Class Retrieval Schema.</i>
 </p>
@@ -157,12 +157,11 @@ First, we looked at the original links before filtering. Many deleted nodes acte
 
 To preserve this information, we applied a **2-hop connection rule**: if the original graph contained a path A → B → C, and node B was removed as noise, we automatically created a direct edge A → C. This simple heuristic salvaged thousands of valid relationships that would otherwise have been lost.
 
-<center>
- <figure>
-  <img src="docs/imgs/heuristic_reconstruction.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 6: Reconstruction of lost edges using heuristic rule.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/heuristic_reconstruction.png" alt="">
+  <br>
+  <i>Figure 6: Reconstruction of lost edges using heuristic rule.</i>
+</p>
 
 
 ### Semantic Graph Densification
@@ -292,25 +291,21 @@ Self-Loops:     False
 
 Finally, we check the class distribution to understand the difficulty of the task:
 
- <center>
- <figure>
-  <img src="docs/imgs/class_dist.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 7: Distribution of target class.</i></figcaption>
-</figure>
-</center>
-
+<p align="center">
+  <img src="docs/imgs/class_dist.png" alt="">
+  <br>
+  <i>Figure 7: Distribution of target class.</i>
+</p>
 
 The dataset is heavily imbalanced. Approximately 50% of the articles belong to the **"Other"** category. A trivial model predicting "Other" for everything would achieve 50% accuracy.
 
 During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-Score** over raw accuracy to ensure the model actually learns the minority classes (like *AI & ML* or *Networking & Protocols*).
 
- <center>
- <figure>
-  <img src="docs/imgs/final_graph_structure.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 8: The structure of final Wikipedia IT graph.</i></figcaption>
-</figure>
-</center>
-
+<p align="center">
+  <img src="docs/imgs/final_graph_structure.png" alt="">
+  <br>
+  <i>Figure 8: The structure of final Wikipedia IT graph.</i>
+</p>
 
 ### Training Strategy: The Splitting Dilemma
 
@@ -321,20 +316,17 @@ There are two main strategies to handle this:
 1. **Inductive Split (Failed):** We initially tried physically cutting the graph into separate subgraphs (Train/Val/Test) and removing connecting edges. This **backfired** because it destroyed the topology — test nodes became isolated, leaving the GNN with no neighbors.
 2. **Transductive Split (Chosen):** We feed the **entire graph** into the model but use **boolean masks** to hide labels. The model calculates loss _only_ on training nodes, but messages can flow through the whole graph. This preserves connectivity.
 
-<center>
- <figure>
-  <img src="docs/imgs/real_inductive_split.jpg" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 9: Inductive data split example.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/real_inductive_split.jpg" alt="">
+  <br>
+  <i>Figure 9: Inductive data split example.</i>
+</p>
 
-
-<center>
- <figure>
-  <img src="docs/imgs/inductive_split.jpg" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 10: Transductive data split example.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/inductive_split.jpg" alt="">
+  <br>
+  <i>Figure 10: Transductive data split example.</i>
+</p>
 
 
 We implemented the **Transductive** strategy using the following code to generate masks:
@@ -403,20 +395,17 @@ GNNs solve this using a process called **Message Passing**. The core idea is sim
 
 By repeating this process (e.g., 2 layers), a node can gather information from its immediate neighbors and _their_ neighbors (2-hop context). The result is a **Graph-Aware Embedding**: a vector that encodes both the semantic content of the article _and_ its position in the Wikipedia topology.
 
-<center>
- <figure>
-  <img src="docs/imgs/msg_passing.jpg" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 11: 1-hop message passing overview.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/msg_passing.jpg" alt="">
+  <br>
+  <i>Figure 11: 1-hop message passing overview.</i>
+</p>
 
-
-<center>
- <figure>
-  <img src="docs/imgs/gnn_example.jpg" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 12: 2-hop message passing overview.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/gnn_example.jpg" alt="">
+  <br>
+  <i>Figure 12: 2-hop message passing overview.</i>
+</p>
 
 
 ## Graph Attention Network
@@ -433,12 +422,11 @@ To understand GAT, let's focus on how it updates a **single node's embedding**. 
 
 First, we project the node features into a hidden space. This is a standard linear layer applied to every node participating in attention mechanism. Even though GNNs are about connectivity, we first need to process the content of each node independently.
 
-<center>
- <figure>
-  <img src="docs/imgs/lin.jpg" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 13: Linear transformation of node features.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/lin.jpg" alt="">
+  <br>
+  <i>Figure 13: Linear transformation of node features.</i>
+</p>
 
 
 ```python
@@ -473,12 +461,11 @@ $$ \vec{a}^T [ \mathbf{W}\vec{h}_i \, \| \, \mathbf{W}\vec{h}_j ] = (\vec{a}_{sr
 
 This allows us to pre-calculate a "source score" and a "target score" for every node independently and then simply add them together to get the pairwise scores.
 
-<center>
- <figure>
-  <img src="docs/imgs/attn_v2.jpg" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 14: New hidden state calculation.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/attn_v2.jpg" alt="">
+  <br>
+  <i>Figure 14: New hidden state calculation.</i>
+</p>
 
 
 ```python
@@ -833,13 +820,11 @@ Numbers are great, but they can be abstract. To understand what our GAT learned,
 
 We projected these vectors into 2D space using **UMAP**.
 
-<center>
- <figure>
-  <img src="docs/imgs/latent_space.jpg" alt="UMAP projection of node embeddings" style="width:100%; height:auto; border-radius: 5px;">
-  <figcaption><i>Figure 15: UMAP projection of the learned graph embeddings.</i></figcaption>
-</figure>
-</center>
-
+<p align="center">
+  <img src="docs/imgs/latent_space.jpg" alt="UMAP projection of node embeddings" style="border-radius: 5px;">
+  <br>
+  <i>Figure 15: UMAP projection of the learned graph embeddings.</i>
+</p>
 
 The visualization confirms that the GNN successfully pulled semantically related articles together, creating distinct **"islands of meaning"**:
 
@@ -855,12 +840,11 @@ Classification is useful, but the **embeddings** we trained offer much more pote
 
 To demonstrate this, we built an interactive web application using **Streamlit** library. It visualizes the local neighborhood of an article and uses the GAT embeddings to suggest "What to read next."
 
-<center>
- <figure>
-  <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
-  <figcaption><i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i></figcaption>
-  </figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="border:1px solid #ddd; border-radius: 5px;">
+  <br>
+  <i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i>
+</p>
 
 ### How it works under the hood
 
@@ -906,6 +890,7 @@ ___
 
 **Project Assets:**
 *   **[Project Repository]**: [GitHub link](https://github.com/lolyhop/gnn-wiki-project)
+*   **[Project Documentation]**: [GitHub link](https://github.com/lolyhop/gnn-wiki-project/blob/main/docs/documentation.md)
 *   **[Dataset Download]**: [Google Drive Link](https://drive.google.com/drive/folders/1meiA2D5PodBqxQUNpKZLzJsVJWprVvcR?usp=share_link)
 *   **[Colab: Wiki Parsing]**: [Open Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)
 *   **[Colab: PyG Data Preparation]**: [Open Notebook](https://colab.research.google.com/drive/1aXbaBVGTfauaGU-8SEtjwcFw3JxKjd1d?usp=sharing)
