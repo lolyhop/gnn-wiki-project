@@ -10,12 +10,12 @@ This project offers a hands-on introduction to applying state-of-the-art graph M
 
 Along the way, we compare graph-based learning with more classical deep learning approaches that treat each article as an independent text sample. This helps highlight why structural information — hyperlinks, neighborhood context, and graph topology — matters. Finally, we demonstrate how **graph-aware embeddings** learned by the model can be reused for a simple semantic recommendation system, allowing us to retrieve related articles based on their position in the knowledge graph.
 
-<center>
-<figure>
-<img src="docs/imgs/intro_image.png" alt="" style="width:100%; height:auto; border:1px solid black; border-radius: 1px;">
-<figcaption><i>Figure 1: Example of subgraph used in our dataset.</i></figcaption>
-</figure>
-</center>
+<div style="text-align:center">
+  <figure>
+    <img src="docs/imgs/intro_image.png" alt="" style="width:100%; max-width:600px; border:1px solid black; border-radius:1px;">
+    <figcaption><i>Figure 1: Example of subgraph used in our dataset.</i></figcaption>
+  </figure>
+</div>
 
 
 ___
