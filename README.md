@@ -847,12 +847,10 @@ Classification is useful, but the **embeddings** we trained offer much more pote
 
 To demonstrate this, we built an interactive web application using **Streamlit** library. It visualizes the local neighborhood of an article and uses the GAT embeddings to suggest "What to read next."
 
-<center>
- <figure>
+<figure style="display: block; margin-left: auto; margin-right: auto; text-align: center;">
   <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
   <figcaption><i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i></figcaption>
 </figure>
-</center>
 
 ### How it works under the hood
 
@@ -872,6 +870,7 @@ Where:
 *   $\theta$ is the angle between the vectors.
 
 3. **Ranking:** We compute this score for all nodes in the graph and return the top $k$ results with the highest similarity score.
+
 $$ \text{Recommendations} = \text{Select top } k \text{ nodes with highest } \text{Score}(v) $$
 
 By using graph-aware embeddings, this system can recommend articles that are conceptually linked even if they don't share identical keywords.
