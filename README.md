@@ -858,21 +858,21 @@ To demonstrate this, we built an interactive web application using **Streamlit**
 
 The logic is surprisingly simple. Since we have a rich numerical representation for every node, recommendation becomes a **Vector Search** problem. 
 
-1. **Inference:** First, we extract the hidden state $\bf{h}_i$ for every node $i$ from the GAT's model. This vector encodes both the text content (from SciBERT) and the structural context (from the Graph).
+1. **Inference:** First, we extract the hidden state $\mathbf{h}_i$ for every node $i$ from the GAT's model. This vector encodes both the text content (from SciBERT) and the structural context (from the Graph).
 
-   $$ \bf{h}_{i} = \text{GAT}(\bf{x}_i, \cal{N}(i)) \in {R}^{d} $$
+$$ \bf{h}_{i} = \text{GAT}(\bf{x}_i, \mathcal{N}(i)) \in \mathbb{R}^{d} $$
 
 2. **Similarity Calculation:** When a user selects a target article $u$ (e.g., *"Neural Network"*), we want to find the most similar article $v$ in our database. We calculate the **Cosine Similarity** between their vectors.
 
-   $$ \text{sim}(\bf{h}_u, \bf{h}_v) = \frac{\bf{h}_u \cdot \bf{h}_v}{\|\bf{h}_u\| \|\bf{h}_v\|} = \cos(\theta) $$
+$$ \text{sim}(\mathbf{h}_u, \mathbf{h}_v) = \frac{\mathbf{h}_u \cdot \mathbf{h}_v}{\|\mathbf{h}_u\| \|\mathbf{h}_v\|} = \cos(\theta) $$
 
-   Where:
-   *   $\bf{h}_u \cdot \bf{h}_v$ is the dot product (measuring overlap).
-   *   $\|\bf{h}\|$ is the magnitude (normalizing for vector length).
-   *   $\theta$ is the angle between the vectors.
+Where:
+*   $\mathbf{h}_u \cdot \mathbf{h}_v$ is the dot product (measuring overlap).
+*   $\|\mathbf{h}\|$ is the magnitude (normalizing for vector length).
+*   $\theta$ is the angle between the vectors.
 
 3. **Ranking:** We compute this score for all nodes in the graph and return the top $k$ results with the highest similarity score.
-   $$ \text{Recommendations} = \text{Select top } k \text{ nodes with highest } \text{Score}(v) $$
+$$ \text{Recommendations} = \text{Select top } k \text{ nodes with highest } \text{Score}(v) $$
 
 By using graph-aware embeddings, this system can recommend articles that are conceptually linked even if they don't share identical keywords.
 
