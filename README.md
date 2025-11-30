@@ -11,7 +11,7 @@ This project offers a hands-on introduction to applying state-of-the-art graph M
 Along the way, we compare graph-based learning with more classical deep learning approaches that treat each article as an independent text sample. This helps highlight why structural information — hyperlinks, neighborhood context, and graph topology — matters. Finally, we demonstrate how **graph-aware embeddings** learned by the model can be reused for a simple semantic recommendation system, allowing us to retrieve related articles based on their position in the knowledge graph.
 
 <p align="center">
-  <img src="docs/imgs/intro_image.png" alt="" width="600">
+  <img src="docs/imgs/intro_image.png" alt="">
   <br>
   <i>Figure 1: Example of subgraph used in our dataset.</i>
 </p>
@@ -102,12 +102,11 @@ The resulting Taxonomy:
 6. **Networking & Protocols**
 7. **Mathematics & Formal Methods**
 
- <center>
- <figure>
-  <img src="docs/imgs/taxonomy_design.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 2: Taxonomy design process.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/taxonomy_design.png" alt="">
+  <br>
+  <i>Figure 2: Taxonomy design process.</i>
+</p>
 
 
 ### Stage 2: Semantic Retrieval Classification
@@ -120,12 +119,11 @@ To map articles to these classes, we treated classification as a **semantic retr
 
 If the highest similarity score was below a strict threshold, the article was assigned to an **"Other"** class, filtering out ambiguous content.
 
- <center>
- <figure>
-  <img src="docs/imgs/semantic_class_retrieval.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 3: Class Retrieval Schema.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/semantic_class_retrieval.png" alt="" width="600">
+  <br>
+  <i>Figure 3: Class Retrieval Schema.</i>
+</p>
 
 
 ### Stage 3: LLM-as-a-judge Refinement
@@ -134,20 +132,17 @@ While semantic similarity is powerful, it lacks nuance. To ensure our ground tru
 
 We took the predictions from Stage 2 and fed them — along with the article’s **Title** and **Full Text** — into a Large Language Model. The LLM acted as a reviewer, verifying whether the retrieved class truly matched the article's content (e.g., ensuring a "Python" article refers to the programming language, not the animal) and correcting misclassifications.
 
- <center>
- <figure>
-  <img src="docs/imgs/validation.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 4: LLM validating the assigned class.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/validation.png" alt="">
+  <br>
+  <i>Figure 4: LLM validating the assigned class.</i>
+</p>
 
-
-<center>
- <figure>
-  <img src="docs/imgs/correction.png" alt="" style="width:100%; height:auto">
-  <figcaption><i>Figure 5: LLM correcting the assigned class.</i></figcaption>
-</figure>
-</center>
+<p align="center">
+  <img src="docs/imgs/correction.png" alt="">
+  <br>
+  <i>Figure 5: LLM correcting the assigned class.</i>
+</p>
 
 
 This process yielded a high-quality dataset with **8 distinct classes** (7 topics + "Other"). We now have the nodes, the text, and the labels. The final piece of the puzzle is **Graph Reconstruction**: restoring the connections we lost during cleaning and preparing the features for our GNN.
