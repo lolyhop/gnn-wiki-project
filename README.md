@@ -2,13 +2,11 @@
 
 ____
 
-# Introduction
+Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** come into play.
 
-Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** become powerful.
+In this post, we take a hands-on journey into state-of-the-art graph ML using **PyTorch Geometric (PyG)**. Our mission is to tackle a realistic problem: understanding and organizing the IT domain of Wikipedia. Together, we will walk step-by-step through building a graph dataset, generating classification labels, training a **Graph Attention Network (GAT)**, and evaluating its performance.
 
-This project offers a hands-on introduction to applying state-of-the-art graph ML using **PyTorch Geometric (PyG)**. The goal is to show how GNNs can be used on a realistic problem: understanding and organizing the IT domain of Wikipedia. We will go step-by-step through building a graph dataset, generating labels, training a **Graph Attention Network (GAT)**, and evaluating its performance.
-
-Along the way, we compare graph-based learning with more classical deep learning approaches that treat each article as an independent text sample. This helps highlight why structural information — hyperlinks, neighborhood context, and graph topology — matters. Finally, we demonstrate how **graph-aware embeddings** learned by the model can be reused for a simple semantic recommendation system, allowing us to retrieve related articles based on their position in the knowledge graph.
+Along the way, we put graph-based learning to the test against classical deep learning approaches that treat each article as an independent text sample. This helps highlight exactly why structural information — hyperlinks, neighborhood context, and graph topology — matters. Finally, we will demonstrate how **graph-aware embeddings** learned by the model can be reused for a simple semantic recommendation system, allowing us to retrieve related articles based on their position in the knowledge graph.
 
 <p align="center">
   <img src="docs/imgs/intro_image.png" alt="">
@@ -20,13 +18,13 @@ ___
 
 # Dataset Collection
 
-While academic benchmarks like [Cora](https://www.geeksforgeeks.org/machine-learning/cora-dataset/) or [PubMed](http://er.tacc.utexas.edu/datasets/ped) are great for testing models, they don't reflect the messy reality of data engineering. To demonstrate a true **end-to-end ML pipeline** — from data parsing to model deployment — we decided to build our own dataset from scratch.
+While academic benchmarks like [Cora](https://www.geeksforgeeks.org/machine-learning/cora-dataset/) or [PubMed](http://er.tacc.utexas.edu/datasets/ped) are great for testing models, they don't reflect the messy reality of data engineering. To demonstrate a true **end-to-end ML pipeline** — from data parsing to model deployment — we chose to build our own dataset from scratch.
 
-We focused on the **Information Technology (IT)** domain of Wikipedia. Our objective was to construct a graph where nodes represent articles and edges represent hyperlinks between them.
+We focused on the **Information Technology (IT)** domain of Wikipedia. **We set out to construct** a graph where nodes represent articles and edges represent hyperlinks between them.
 
 ## 1. Defining the Scope
 
-You can’t simply “download Wikipedia.” It is too massive and disconnected. To create a coherent dataset, we needed specific starting points, a.k.a. seed articles. We manually curated a list of root categories covering the broad pillars of the IT landscape, from theoretical foundations to applied engineering:
+You can’t simply “download Wikipedia” — it is too massive and disconnected. To create a coherent dataset, we needed a strategy. We started by manually curating a list of root categories covering the broad pillars of the IT landscape, from theoretical foundations to applied engineering:
 
 ```python
 SEED_CATEGORIES = [
@@ -40,7 +38,7 @@ SEED_CATEGORIES = [
 ]
 ```
 
-From each category, we fetched the full list of member pages and **randomly sampled 30 articles**. These served as our seed nodes — diverse, distributed centers from which our graph would grow.
+From each category, we fetched the full list of member pages and **randomly sampled 30 articles**. These became our seed nodes — diverse, distributed centers from which our graph would grow.
 
 ## 2. Crawling the Graph
 
@@ -54,6 +52,7 @@ MAX_LINKS_PER_PAGE = 12  # maximum outgoing links followed per page
 ```
 
 >You can find the implementation of the crawler in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
+
 
 ## 3. Filtering the Noise
 
@@ -79,15 +78,17 @@ NOISE_KEYWORDS = [
 ]
 ```
 
-If an article's categories contained any of these terms, the node was removed.
+If an article's categories contained any of these terms, we cut the node.
 
-This rigorous filtering came at a cost. While we successfully curated a high-quality core of **7,934 IT-related articles** (removing over 6,600 noisy nodes), we severely fragmented the graph structure. Deleting nodes deletes their connections, causing our total link count to plummet from **44,008 to just 7,859**. This left many articles isolated — a major problem for GNNs that rely on connectivity. We will address this fragmentation in the **Graph Reconstruction** section by reconstructing the graph topology.
+But this rigorous filtering came with a heavy price tag. While we successfully realized a high-quality core of **7,934 IT-related articles** (removing over 6,600 noisy nodes), we severely fragmented the graph structure. When you delete a node, you delete its edges. Our total link count plummeted from 44,008 to just 7,859.
+
+This left us with many isolated islands — a major problem for GNNs that rely on connectivity to learn. How did we fix this broken topology? We will tackle that in the Graph Reconstruction section.
 
 ## 4. From Chaos to Classes: Automated Labeling
 
-We now had a clean set of text articles, but supervised learning requires distinct target labels. Wikipedia provides **categories**, but they are too granular to serve as labels directly (e.g., _"Software companies established in 1998"_ is not a useful high-level class).
+We now have a clean set of text articles, but supervised learning requires distinct target labels. Wikipedia provides **categories**, but they are too granular to serve as labels directly (e.g., _"Software companies established in 1998"_ is not a useful high-level class).
 
-To convert this noisy metadata into a clean classification dataset, we designed a **three-stage automated labeling pipeline**.
+To turn this noisy metadata into a clean classification dataset, we designed a **three-stage automated labeling pipeline**.
 
 ### Stage 1: Taxonomy Design
 
@@ -111,7 +112,7 @@ The resulting Taxonomy:
 
 ### Stage 2: Semantic Retrieval Classification
 
-To map articles to these classes, we treated classification as a **semantic retrieval task:**
+To map thousands of articles to these new classes, we treated classification as a **semantic retrieval task:**
 1. We generated a detailed textual description for each of the 7 classes (you can find class descriptions [here](https://github.com/lolyhop/gnn-wiki-project/blob/main/src/dataset_preparation/constants.py));
 2. For every article, we concatenated its _list of categories_ into a single string. We intentionally used categories (metadata) rather than the raw text here to capture how Wikipedia editors organize the content;
 3. We embedded both the **Class Descriptions** and the **Article Categories** using the [`google/embedding-gemma-300m`](https://huggingface.co/google/embeddinggemma-300m) model;
@@ -149,7 +150,7 @@ This process yielded a high-quality dataset with **8 distinct classes** (7 topic
 
 ## 5. Graph Reconstruction
 
-At this point, we had a clean dataset with high-quality labels, but our graph topology was severely damaged. The aggressive filtering in Section 3 removed "bridge" nodes, turning a connected web into thousands of isolated islands. A GNN cannot learn effective message passing on such graphs. To fix this, we introduce the following techniques.
+We must now restore the structural integrity of our graph. The aggressive filtering in Section 3 removed "bridge" nodes, turning a connected web into thousands of isolated islands. A GNN cannot learn effective message passing on such graphs. To fix this, we introduce the following techniques.
 
 ### Connecting 2-hop neighbors via virtual edges
 
@@ -170,7 +171,7 @@ The 2-hop rule fixed the broken bridges, but the graph remained sparse. Wikipedi
 
 To fix this, we enriched the graph with **implicit semantic connections**.
 
-1. **Embedding:** We passed the full text of every article through the Gemma model to obtain dense semantic vector representations;
+1. **Embedding:** We passed the full text of every article through the Gemma embedding model to obtain dense semantic vector representations;
 2. **Retrieval:** For every node, we identified its **top-20 nearest neighbors** in the embedding space based on cosine similarity;
 3. **Stochastic Connection:** Instead of connecting all 20 neighbors deterministically, we introduced a stochastic element. For each node, we randomly selected between **6 and 20** of these neighbors to form new edges.
 
@@ -193,6 +194,7 @@ Aside from preventing leakage, SciBERT is excellent for this task. Unlike standa
 To train a GNN, we cannot simply feed raw JSONs or CSVs into the model. We must translate our data into the language of tensors, specifically formatted for **PyTorch Geometric (PyG)**.
 
 > You can find the full preprocessing pipeline in our [Google Colab Notebook](https://colab.research.google.com/drive/1aXbaBVGTfauaGU-8SEtjwcFw3JxKjd1d?usp=sharing).
+
 ### Understanding the Data Object
 
 In PyG, a graph is represented by a single `Data` object that holds three essential tensors. Let's break down exactly what dimensions and types PyG expects:
@@ -364,6 +366,7 @@ data.test_mask[test_idx] = True
 ```
 
 ___
+
 ## Dataset Download
 
 This concludes the data engineering phase of our pipeline. We now have a fully constructed graph with rich features, reconstructed edges, and clean labels.
