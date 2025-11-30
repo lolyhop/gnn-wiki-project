@@ -1,4 +1,7 @@
+# **Modeling the Wikipedia IT Graph with GATs**
+
 ____
+
 # Introduction
 
 Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** become powerful.
@@ -9,7 +12,7 @@ Along the way, we compare graph-based learning with more classical deep learning
 
  <center>
  <figure>
-  <img src="intro_image.png" alt="" style="width:100%; height:auto; border:1px solid black; border-radius: 1px;">
+  <img src="docs/imgs/intro_image.png" alt="" style="width:100%; height:auto; border:1px solid black; border-radius: 1px;">
   <figcaption><i>Figure 1: Example of subgraph used in our dataset.</i></figcaption>
 </figure>
 </center>
@@ -102,7 +105,7 @@ The resulting Taxonomy:
 
  <center>
  <figure>
-  <img src="taxonomy_design.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/taxonomy_design.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 2: Taxonomy design process.</i></figcaption>
 </figure>
 </center>
@@ -119,7 +122,7 @@ If the highest similarity score was below a strict threshold, the article was as
 
  <center>
  <figure>
-  <img src="semantic_class_retrieval.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/semantic_class_retrieval.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 3: Class Retrieval Schema.</i></figcaption>
 </figure>
 </center>
@@ -132,13 +135,13 @@ We took the predictions from Stage 2 and fed them — along with the article’s
 
  <center>
  <figure>
-  <img src="validation.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/validation.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 4: LLM validating the assigned class.</i></figcaption>
 </figure>
 </center>
 <center>
  <figure>
-  <img src="correction.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/correction.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 5: LLM correcting the assigned class.</i></figcaption>
 </figure>
 </center>
@@ -157,7 +160,7 @@ To preserve this information, we applied a **2-hop connection rule**: if the ori
 
 <center>
  <figure>
-  <img src="heuristic_reconstruction.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/heuristic_reconstruction.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 6: Reconstruction of lost edges using heuristic rule.</i></figcaption>
 </figure>
 </center>
@@ -291,7 +294,7 @@ Finally, we check the class distribution to understand the difficulty of the tas
 
  <center>
  <figure>
-  <img src="class_dist.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/class_dist.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 7: Distribution of target class.</i></figcaption>
 </figure>
 </center>
@@ -302,7 +305,7 @@ During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-
 
  <center>
  <figure>
-  <img src="final_graph_structure.png" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/final_graph_structure.png" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 8: The structure of final Wikipedia IT graph.</i></figcaption>
 </figure>
 </center>
@@ -318,14 +321,14 @@ There are two main strategies to handle this:
 
 <center>
  <figure>
-  <img src="real_inductive_split.jpg" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/real_inductive_split.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 9: Inductive data split example.</i></figcaption>
 </figure>
 </center>
 
 <center>
  <figure>
-  <img src="inductive_split.jpg" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/inductive_split.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 10: Transductive data split example.</i></figcaption>
 </figure>
 </center>
@@ -398,14 +401,14 @@ By repeating this process (e.g., 2 layers), a node can gather information from i
 
 <center>
  <figure>
-  <img src="msg_passing.jpg" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/msg_passing.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 11: 1-hop message passing overview.</i></figcaption>
 </figure>
 </center>
 
 <center>
  <figure>
-  <img src="gnn_example.jpg" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/gnn_example.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 12: 2-hop message passing overview.</i></figcaption>
 </figure>
 </center>
@@ -425,7 +428,7 @@ First, we project the node features into a hidden space. This is a standard line
 
 <center>
  <figure>
-  <img src="lin.jpg" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/lin.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 13: Linear transformation of node features.</i></figcaption>
 </figure>
 </center>
@@ -464,7 +467,7 @@ This allows us to pre-calculate a "source score" and a "target score" for every 
 
 <center>
  <figure>
-  <img src="attn_v2.jpg" alt="" style="width:100%; height:auto">
+  <img src="docs/imgs/attn_v2.jpg" alt="" style="width:100%; height:auto">
   <figcaption><i>Figure 14: New hidden state calculation.</i></figcaption>
 </figure>
 </center>
@@ -825,7 +828,7 @@ We projected these vectors into 2D space using **UMAP**.
 
 <center>
  <figure>
-  <img src="latent_space.jpg" alt="UMAP projection of node embeddings" style="width:100%; height:auto; border-radius: 5px;">
+  <img src="docs/imgs/latent_space.jpg" alt="UMAP projection of node embeddings" style="width:100%; height:auto; border-radius: 5px;">
   <figcaption><i>Figure 15: UMAP projection of the learned graph embeddings.</i></figcaption>
 </figure>
 </center>
@@ -846,7 +849,7 @@ To demonstrate this, we built an interactive web application using **Streamlit**
 
 <center>
  <figure>
-  <img src="graph_explorer_fast_v2.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
+  <img src="docs/imgs/graph_explorer_fast_v2.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
   <figcaption><i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i></figcaption>
 </figure>
 </center>
