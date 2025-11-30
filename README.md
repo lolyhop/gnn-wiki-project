@@ -847,10 +847,12 @@ Classification is useful, but the **embeddings** we trained offer much more pote
 
 To demonstrate this, we built an interactive web application using **Streamlit** library. It visualizes the local neighborhood of an article and uses the GAT embeddings to suggest "What to read next."
 
-<figure style="display: block; margin-left: auto; margin-right: auto; text-align: center;">
+<center>
+ <figure>
   <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="width:100%; height:auto; border:1px solid #ddd; border-radius: 5px;">
   <figcaption><i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i></figcaption>
-</figure>
+  </figure>
+</center>
 
 ### How it works under the hood
 
