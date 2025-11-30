@@ -377,9 +377,9 @@ ___
 
 # Model Training
 
-With our dataset fully prepared, we move to the core of this project: **training a Graph Neural Network**.
+With our dataset fully prepared, we can move to the core of this project: **training a Graph Neural Network**.
 
-Our primary objective is to implement a state-of-the-art graph model — specifically a **Graph Attention Network (GAT)** — that can effectively leverage the relational structure we painstakingly reconstructed. 
+In this section, we will implement a state-of-the-art (SOTA) graph model — specifically a **Graph Attention Network (GAT)** — that can effectively leverage the relational structure we painstakingly reconstructed. 
 
 To rigorously validate our GNN's performance, we will also train a simple text-based baseline (MLP). This allows us to quantify exactly how much value the graph structure adds compared to treating articles as isolated documents.
 
