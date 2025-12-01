@@ -24,7 +24,7 @@ We focused on the **Information Technology (IT)** domain of Wikipedia. **We set 
 
 ## 1. Defining the Scope
 
-You can’t simply “download Wikipedia” — it is too massive and disconnected. To create a coherent dataset, we needed a strategy. We started by manually curating a list of root categories covering the broad pillars of the IT landscape, from theoretical foundations to applied engineering:
+You can’t simply “download Wikipedia” — it is too massive and disconnected. To create a coherent dataset that focuses on IT domain, we needed a strategy. Firstly, we decided to curate a list of article categories that represent most IT topics (we curated them manually):
 
 ```python
 SEED_CATEGORIES = [
@@ -38,7 +38,33 @@ SEED_CATEGORIES = [
 ]
 ```
 
-From each category, we fetched the full list of member pages and **randomly sampled 30 articles**. These became our seed nodes — diverse, distributed centers from which our graph would grow.
+Then, from each category we fetched the full list of member pages and **randomly sampled 30 articles**:
+
+```python
+import wikipediaapi
+import random
+
+# Initialize the library
+wiki = wikipediaapi.Wikipedia(user_agent="GraphBot/1.0", language="en")
+seed_nodes = []
+
+for cat_name in SEED_CATEGORIES:
+    cat_page = wiki.page(cat_name)
+    
+    # 1. Fetch all member pages
+    members = [
+        p.title for p in cat_page.categorymembers.values() 
+        if p.ns == 0
+    ]
+    
+    # 2. Randomly sample 30 seeds per category
+    random.shuffle(members)
+    seed_nodes.extend(members[:30])
+```
+
+These became our seed nodes — diverse, distributed centers from which our graph would grow.
+
+>You can find the implementation of our initial data collection in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
 
 ## 2. Crawling the Graph
 
@@ -50,9 +76,6 @@ MAX_DEPTH = 20           # maximum BFS depth from a seed node
 MAX_NODES = 20_000       # maximum total nodes in the graph
 MAX_LINKS_PER_PAGE = 12  # maximum outgoing links followed per page
 ```
-
->You can find the implementation of the crawler in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
-
 
 ## 3. Filtering the Noise
 
@@ -83,6 +106,8 @@ If an article's categories contained any of these terms, we cut the node.
 But this rigorous filtering came with a heavy price tag. While we successfully realized a high-quality core of **7,934 IT-related articles** (removing over 6,600 noisy nodes), we severely fragmented the graph structure. When you delete a node, you delete its edges. Our total link count plummeted from 44,008 to just 7,859.
 
 This left us with many isolated islands — a major problem for GNNs that rely on connectivity to learn. How did we fix this broken topology? We will tackle that in the Graph Reconstruction section.
+
+> The implementation of noise filtering module and automated labeling pipeline can be found in the **[Google Colab Notebook](https://colab.research.google.com/drive/1c55d5NWsLDx1TeKmOrYUJJ4kTc5ZbWNG?usp=sharing)**
 
 ## 4. From Chaos to Classes: Automated Labeling
 
