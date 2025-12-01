@@ -20,7 +20,11 @@ class GAT(torch.nn.Module):
         self.conv1 = GATConv(in_channels, hidden_channels, heads=heads, dropout=0.25)
         # Layer 2: Output layer (concat=False to merge heads)
         self.conv2 = GATConv(
-            hidden_channels * heads, out_channels, heads=heads, concat=False, dropout=0.25
+            hidden_channels * heads,
+            out_channels,
+            heads=heads,
+            concat=False,
+            dropout=0.25,
         )
 
     def forward(self, x, edge_index):
@@ -28,7 +32,7 @@ class GAT(torch.nn.Module):
         x = self.conv1(x, edge_index)
         x = F.elu(x)
         x = F.dropout(x, p=0.3, training=self.training)
-        
+
         x = self.conv2(x, edge_index)
         print(x.shape)
         return x
@@ -71,56 +75,49 @@ def save_plots(history, filename="gat_metrics.png"):
 
 
 def evaluate_full_batch(model, data, mask):
-    """ Helper for full-graph evaluation using masks. """
+    """Helper for full-graph evaluation using masks."""
     model.eval()
     with torch.no_grad():
         # Forward pass on the whole graph
         out = model(data.x, data.edge_index)
-        
+
         # Filter by mask
         pred = out[mask].argmax(dim=1)
         y_true = data.y[mask]
-        
+
         acc, _, _, f1 = calculate_metrics(y_true, pred)
     return acc, f1, y_true, pred
 
 
 def run_gat_training():
-    # --- CONFIG ---
     PATH = "./data/wiki_it_graph_scibert_feats.pt"
     PLOT_PATH = "./plots"
     os.makedirs(PLOT_PATH, exist_ok=True)
 
-    HIDDEN_DIM = 32  # Total hidden size will be 64 * 8 = 512
+    HIDDEN_DIM = 32  # Total hidden size will be 32 * 8 = 512
     HEADS = 8
     LR = 3e-4
     EPOCHS = 100
-    BATCH_SIZE = 16 # Number of target nodes per batch
-    
-    # Neighbor Sampling config
-    # [10, 10] means: sample 10 neighbors for hop-1, and 10 for hop-2
-    NUM_NEIGHBORS = [10, 10] 
+    BATCH_SIZE = 16
+    NUM_NEIGHBORS = [10, 10]
 
-    # Mac MPS check (GAT often unstable on MPS, prefer CPU if issues arise)
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if torch.backends.mps.is_available():
-        DEVICE = torch.device("cpu") 
-    
+        DEVICE = torch.device("cpu")
+
     print(f"Using device: {DEVICE}")
 
-    # --- DATA LOADING ---
-    # 1. Load single Transductive graph
+    # 1. Load graph
     data = read_and_split(PATH)
-    data = data.to(DEVICE) # Move full graph to device for validation
-    
-    # 2. Setup NeighborLoader for Training
-    # This enables mini-batch training on large graphs
+    data = data.to(DEVICE)
+
+    # 2. Setup data loader
     train_loader = NeighborLoader(
         data,
         num_neighbors=NUM_NEIGHBORS,
         batch_size=BATCH_SIZE,
-        input_nodes=data.train_mask, # Only sample batches from Train nodes
-        shuffle=True
+        input_nodes=data.train_mask, 
+        shuffle=True,
     )
 
     num_features = data.x.shape[1]
@@ -128,7 +125,7 @@ def run_gat_training():
     print(f"Features: {num_features}, Classes: {num_classes}")
     print(f"Train Batches: {len(train_loader)}")
 
-    # --- MODEL SETUP ---
+    # Model Setup
     model = GAT(num_features, HIDDEN_DIM, num_classes, heads=HEADS).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=5e-4)
     criterion = nn.CrossEntropyLoss()
@@ -142,31 +139,29 @@ def run_gat_training():
         # --- TRAIN (Mini-Batch) ---
         model.train()
         total_loss = 0
-        
+
         for batch in train_loader:
             batch = batch.to(DEVICE)
             optimizer.zero_grad()
-            
-            # Forward pass on sampled subgraph
+
+            # Fwd pass
             out = model(batch.x, batch.edge_index)
-            
-            # Slice output: NeighborLoader places target nodes first
-            # We only compute loss on the target nodes (batch_size)
-            target_out = out[:batch.batch_size]
-            target_y = batch.y[:batch.batch_size]
-            
+
+            # Slice output
+            target_out = out[: batch.batch_size]
+            target_y = batch.y[: batch.batch_size]
+
             print(target_out.shape, target_y.shape)
             loss = criterion(target_out, target_y)
 
             loss.backward()
             optimizer.step()
-            
+
             total_loss += loss.item()
-        
+
         avg_loss = total_loss / len(train_loader)
 
-        # --- VALIDATION (Full-Batch) ---
-        # For small/medium graphs, full-batch eval is standard and accurate
+        # Validation
         acc_val, f1_val, _, _ = evaluate_full_batch(model, data, data.val_mask)
 
         # Logging
@@ -185,11 +180,10 @@ def run_gat_training():
     print(f"\nTraining finished. Best Val F1: {best_val_f1:.4f}")
     save_plots(history, filename=f"{PLOT_PATH}/gat_metrics.png")
 
-    # --- TEST EVALUATION ---
+    # Test Set eval
     print("\nEvaluating on Test Set...")
     _, _, y_true, y_pred = evaluate_full_batch(model, data, data.test_mask)
-    
-    # Classification Report expects CPU numpy arrays
+
     print(classification_report(y_true.cpu(), y_pred.cpu(), digits=4))
 
 

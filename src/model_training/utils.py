@@ -1,6 +1,5 @@
 import torch
 from torch_geometric.data import Data
-from torch_geometric.utils import subgraph
 
 
 def read_and_split(

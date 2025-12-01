@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.metrics import (
@@ -72,7 +71,6 @@ def save_plots(history, filename="baseline_metrics.png"):
     # Plot 1: Loss
     plt.subplot(1, 2, 1)
     plt.plot(epochs, history["train_loss"], label="Train Loss")
-    # plt.plot(epochs, history["val_loss"], label="Val Loss") # Optional if we calculate val loss
     plt.title("Training Loss")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")

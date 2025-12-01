@@ -824,7 +824,7 @@ Numbers are great, but they can be abstract. To understand what our GAT learned,
 We projected these vectors into 2D space using **UMAP**.
 
 <p align="center">
-  <img src="docs/imgs/latent_space.jpg" alt="UMAP projection of node embeddings" style="border-radius: 5px;">
+  <img src="docs/imgs/latent_space_of_wiki.jpg" alt="UMAP projection of node embeddings" style="border-radius: 5px;">
   <br>
   <i>Figure 15: UMAP projection of the learned graph embeddings.</i>
 </p>
