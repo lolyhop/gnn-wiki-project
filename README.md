@@ -173,6 +173,8 @@ We took the predictions from Stage 2 and fed them — along with the article’s
 
 This process yielded a high-quality dataset with **8 distinct classes** (7 topics + "Other"). We now have the nodes, the text, and the labels. The final piece of the puzzle is **Graph Reconstruction**: restoring the connections we lost during cleaning and preparing the features for our GNN.
 
+> You can find the code for LLM-as-a-judge step in our **[Google Colab Notebook](https://colab.research.google.com/drive/1U0A6_poJUMYdZmQD6BaIglO3TnMLDRrd?usp=sharing)**
+
 ## 5. Graph Reconstruction
 
 We must now restore the structural integrity of our graph. The aggressive filtering in Section 3 removed "bridge" nodes, turning a connected web into thousands of isolated islands. A GNN cannot learn effective message passing on such graphs. To fix this, we introduce the following techniques.
