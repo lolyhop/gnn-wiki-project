@@ -101,6 +101,13 @@ NOISE_KEYWORDS = [
 
 If an article's categories contained any of these terms, we cut the node.
 
+<p align="center">
+  <img src="docs/imgs/funnel.png" alt="">
+  <br>
+  <i>Figure 2: Domain Scoping Funnel.</i>
+</p>
+
+
 But this rigorous filtering came at cost. While we successfully realized a high-quality core of **7,934 IT-related articles** (removing over 6,600 noisy nodes), we severely fragmented the graph structure. When you delete a node, you delete its edges. Our total link count plummeted from 44,008 to just 7,859.
 
 This left us with many isolated islands — a major problem for GNNs that rely on connectivity to learn. How did we fix this broken topology? We will tackle that in the Graph Reconstruction section.
@@ -129,7 +136,7 @@ The resulting Taxonomy:
 <p align="center">
   <img src="docs/imgs/taxonomy_design.png" alt="">
   <br>
-  <i>Figure 2: Taxonomy design process.</i>
+  <i>Figure 3: Taxonomy design process.</i>
 </p>
 
 
@@ -146,7 +153,7 @@ If the highest similarity score was below a strict threshold, the article was as
 <p align="center">
   <img src="docs/imgs/semantic_class_retrieval.png" alt="">
   <br>
-  <i>Figure 3: Class Retrieval Schema.</i>
+  <i>Figure 4: Class Retrieval Schema.</i>
 </p>
 
 
@@ -159,13 +166,13 @@ We took the predictions from Stage 2 and fed them — along with the article’s
 <p align="center">
   <img src="docs/imgs/validation.png" alt="">
   <br>
-  <i>Figure 4: LLM validating the assigned class.</i>
+  <i>Figure 5: LLM validating the assigned class.</i>
 </p>
 
 <p align="center">
   <img src="docs/imgs/correction.png" alt="">
   <br>
-  <i>Figure 5: LLM correcting the assigned class.</i>
+  <i>Figure 6: LLM correcting the assigned class.</i>
 </p>
 
 
@@ -188,7 +195,7 @@ To preserve this information, we applied a **2-hop connection rule**: if the ori
 <p align="center">
   <img src="docs/imgs/heuristic_reconstruction.png" alt="">
   <br>
-  <i>Figure 6: Reconstruction of lost edges using heuristic rule.</i>
+  <i>Figure 7: Reconstruction of lost edges using heuristic rule.</i>
 </p>
 
 
@@ -203,6 +210,12 @@ To fix this, we enriched the graph with **implicit semantic connections**.
 3. **Stochastic Connection:** Instead of connecting all 20 neighbors deterministically, we introduced a stochastic element. For each node, we randomly selected between **6 and 20** of these neighbors to form new edges.
 
 After applying these techniques, we successfully restored a dense, interconnected graph structure ready for message passing.
+
+<p align="center">
+  <img src="docs/imgs/semantic_dense.png" alt="">
+  <br>
+  <i>Figure 8: Reconstruction of lost edges using semantic connections.</i>
+</p>
 
 ## 6. Feature Engineering
 
@@ -221,7 +234,7 @@ We freeze the SciBERT model (this means we do not train it) and encode the text 
 <p align="center">
   <img src="docs/imgs/node_feature_gen.png" alt="">
   <br>
-  <i>Figure 7: Node feature generation schema.</i>
+  <i>Figure 9: Node feature generation schema.</i>
 </p>
 
 ## 7. Preparing Data for PyG
@@ -331,7 +344,7 @@ Finally, we check the class distribution to understand the difficulty of the tas
 <p align="center">
   <img src="docs/imgs/class_dist.png" alt="">
   <br>
-  <i>Figure 8: Distribution of target class.</i>
+  <i>Figure 10: Distribution of target class.</i>
 </p>
 
 The dataset is heavily imbalanced. Approximately 50% of the articles belong to the **"Other"** category. A trivial model predicting "Other" for everything would achieve 50% accuracy.
@@ -341,7 +354,7 @@ During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-
 <p align="center">
   <img src="docs/imgs/final_graph_structure.png" alt="">
   <br>
-  <i>Figure 9: The structure of final Wikipedia IT graph.</i>
+  <i>Figure 11: The structure of final Wikipedia IT graph.</i>
 </p>
 
 ### Training Strategy: The Splitting Dilemma
@@ -356,13 +369,13 @@ There are two main strategies to handle this:
 <p align="center">
   <img src="docs/imgs/real_inductive_split.jpg" alt="">
   <br>
-  <i>Figure 10: Inductive data split example.</i>
+  <i>Figure 12: Inductive data split example.</i>
 </p>
 
 <p align="center">
   <img src="docs/imgs/inductive_split.jpg" alt="">
   <br>
-  <i>Figure 11: Transductive data split example.</i>
+  <i>Figure 13: Transductive data split example.</i>
 </p>
 
 
@@ -436,13 +449,13 @@ By repeating this process (e.g., 2 layers), a node can gather information from i
 <p align="center">
   <img src="docs/imgs/msg_passing.jpg" alt="">
   <br>
-  <i>Figure 12: 1-hop message passing overview.</i>
+  <i>Figure 14: 1-hop message passing overview.</i>
 </p>
 
 <p align="center">
   <img src="docs/imgs/gnn_example.jpg" alt="">
   <br>
-  <i>Figure 13: 2-hop message passing overview.</i>
+  <i>Figure 15: 2-hop message passing overview.</i>
 </p>
 
 
@@ -463,7 +476,7 @@ First, we project the node features into a hidden space. This is a standard line
 <p align="center">
   <img src="docs/imgs/lin.jpg" alt="">
   <br>
-  <i>Figure 14: Linear transformation of node features.</i>
+  <i>Figure 16: Linear transformation of node features.</i>
 </p>
 
 
@@ -502,7 +515,7 @@ This allows us to pre-calculate a "source score" and a "target score" for every 
 <p align="center">
   <img src="docs/imgs/attn_v2.jpg" alt="">
   <br>
-  <i>Figure 15: New hidden state calculation.</i>
+  <i>Figure 17: New hidden state calculation.</i>
 </p>
 
 
@@ -861,7 +874,7 @@ We projected these vectors into 2D space using **UMAP**.
 <p align="center">
   <img src="docs/imgs/latent_space_of_wiki.jpg" alt="UMAP projection of node embeddings" style="border-radius: 5px;">
   <br>
-  <i>Figure 16: UMAP projection of the learned graph embeddings.</i>
+  <i>Figure 18: UMAP projection of the learned graph embeddings.</i>
 </p>
 
 The visualization confirms that the GNN successfully pulled semantically related articles together, creating distinct **"islands of meaning"**:
@@ -881,7 +894,7 @@ To demonstrate this, we built an interactive web application using **Streamlit**
 <p align="center">
   <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="border:1px solid #ddd; border-radius: 5px;">
   <br>
-  <i>Figure 17: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i>
+  <i>Figure 19: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i>
 </p>
 
 ### How it works under the hood
