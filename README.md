@@ -2,8 +2,6 @@
 
 ____
 
-# Introduction
-
 Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** come into play.
 
 In this post, we take a hands-on journey into state-of-the-art graph ML using **PyTorch Geometric (PyG)**. Our mission is to tackle a realistic problem: understanding and organizing the IT domain of Wikipedia. Together, we will walk step-by-step through building a graph dataset, generating classification labels, training a **Graph Attention Network (GAT)**, and evaluating its performance.
