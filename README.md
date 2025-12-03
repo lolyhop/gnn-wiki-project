@@ -2,7 +2,7 @@
 
 Many machine learning practitioners are comfortable working with images, text, or tabular data, but graph-structured data often feels unfamiliar. Yet a large amount of real-world information — social networks, citation networks, knowledge bases, and Wikipedia itself — naturally forms graphs. Traditional deep learning models struggle in these settings because they cannot use the relational structure of the data. This is where **Graph Neural Networks (GNNs)** come into play.
 
-In this post, we take a hands-on journey into state-of-the-art graph ML using **PyTorch Geometric (PyG)**. Our mission is to tackle a realistic problem: understanding and organizing the IT domain of Wikipedia. Together, we will walk step-by-step through building a graph dataset, generating classification labels, training a **Graph Attention Network (GAT)**, and evaluating its performance.
+In this post, we take a hands-on journey into state-of-the-art graph ML using **PyTorch Geometric (PyG)**. Our mission is to tackle a realistic problem: understanding and organizing the IT domain of Wikipedia. Together, we will walk step-by-step through building a graph dataset from scratch, training a **Graph Attention Network (GAT)**, and evaluating its performance.
 
 Along the way, we put graph-based learning to the test against classical deep learning approaches that treat each article as an independent text sample. This helps highlight exactly why structural information — hyperlinks, neighborhood context, and graph topology — matters. Finally, we will demonstrate how **graph-aware embeddings** learned by the model can be reused for a simple semantic recommendation system, allowing us to retrieve related articles based on their position in the knowledge graph.
 
@@ -62,7 +62,7 @@ for cat_name in SEED_CATEGORIES:
 
 These became our seed nodes — diverse, distributed centers from which our graph would grow.
 
->You can find the implementation of our initial data collection in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
+>You can find the implementation of our initial data collection pipeline in our **[Google Colab Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)**.
 
 ## 2. Crawling the Graph
 
@@ -101,7 +101,7 @@ NOISE_KEYWORDS = [
 
 If an article's categories contained any of these terms, we cut the node.
 
-But this rigorous filtering came with a heavy price tag. While we successfully realized a high-quality core of **7,934 IT-related articles** (removing over 6,600 noisy nodes), we severely fragmented the graph structure. When you delete a node, you delete its edges. Our total link count plummeted from 44,008 to just 7,859.
+But this rigorous filtering came at cost. While we successfully realized a high-quality core of **7,934 IT-related articles** (removing over 6,600 noisy nodes), we severely fragmented the graph structure. When you delete a node, you delete its edges. Our total link count plummeted from 44,008 to just 7,859.
 
 This left us with many isolated islands — a major problem for GNNs that rely on connectivity to learn. How did we fix this broken topology? We will tackle that in the Graph Reconstruction section.
 
@@ -137,9 +137,9 @@ The resulting Taxonomy:
 
 To map thousands of articles to these new classes, we treated classification as a **semantic retrieval task:**
 1. We generated a detailed textual description for each of the 7 classes (you can find class descriptions [here](https://github.com/lolyhop/gnn-wiki-project/blob/main/src/dataset_preparation/constants.py));
-2. For every article, we concatenated its _list of categories_ into a single string. We intentionally used categories (metadata) rather than the raw text here to capture how Wikipedia editors organize the content;
-3. We embedded both the **Class Descriptions** and the **Article Categories** using the [`google/embedding-gemma-300m`](https://huggingface.co/google/embeddinggemma-300m) model;
-4. We calculated the **Cosine Similarity** between each article and the class descriptions, assigning the most probable class.
+2. For every article, we concatenated its _list of categories_ into a single string. We intentionally used categories (metadata) rather than the raw text to prevent data leakage. Since our GNN input features are derived from the article text, using the same text to generate labels would create a circular dependency;
+3. We embedded both the **Class Descriptions** and the **Article Categories** using the [`google/embedding-gemma-300m`](https://huggingface.co/google/embeddinggemma-300m) model, selected for its exceptional performance-to-size ratio on the [MTEB benchmark](https://mteb-leaderboard.hf.space/?benchmark_name=MTEB);
+4. We calculated the **Cosine Similarity** between each article's embedding and the 7 class vectors, assigning the article to the class with the highest score.
 
 If the highest similarity score was below a strict threshold, the article was assigned to an **"Other"** class, filtering out ambiguous content.
 
@@ -214,7 +214,15 @@ Since we already used the **Gemma Embedding Model** to generate our ground truth
 
 ### Why SciBERT?
 
-Aside from preventing leakage, SciBERT is excellent for this task. Unlike standard BERT, it is pretrained on a vast corpus of scientific papers. This allows it to better understand technical IT terminology. We freeze the SciBERT model (this means we do not train it) and encode the title and abstract of every article into a **768-dimensional vector**.
+Aside from preventing leakage, SciBERT is excellent for this task. Unlike standard BERT, it is pretrained on a vast corpus of scientific papers. This allows it to better understand technical IT terminology.
+
+We freeze the SciBERT model (this means we do not train it) and encode the text of every article into a **768-dimensional vector**. 
+
+<p align="center">
+  <img src="docs/imgs/node_feature_gen.png" alt="">
+  <br>
+  <i>Figure 7: Node feature generation schema.</i>
+</p>
 
 ## 7. Preparing Data for PyG
 
@@ -323,7 +331,7 @@ Finally, we check the class distribution to understand the difficulty of the tas
 <p align="center">
   <img src="docs/imgs/class_dist.png" alt="">
   <br>
-  <i>Figure 7: Distribution of target class.</i>
+  <i>Figure 8: Distribution of target class.</i>
 </p>
 
 The dataset is heavily imbalanced. Approximately 50% of the articles belong to the **"Other"** category. A trivial model predicting "Other" for everything would achieve 50% accuracy.
@@ -333,7 +341,7 @@ During evaluation, we must prioritize **Weighted Precision/Recall** and **F1-
 <p align="center">
   <img src="docs/imgs/final_graph_structure.png" alt="">
   <br>
-  <i>Figure 8: The structure of final Wikipedia IT graph.</i>
+  <i>Figure 9: The structure of final Wikipedia IT graph.</i>
 </p>
 
 ### Training Strategy: The Splitting Dilemma
@@ -348,13 +356,13 @@ There are two main strategies to handle this:
 <p align="center">
   <img src="docs/imgs/real_inductive_split.jpg" alt="">
   <br>
-  <i>Figure 9: Inductive data split example.</i>
+  <i>Figure 10: Inductive data split example.</i>
 </p>
 
 <p align="center">
   <img src="docs/imgs/inductive_split.jpg" alt="">
   <br>
-  <i>Figure 10: Transductive data split example.</i>
+  <i>Figure 11: Transductive data split example.</i>
 </p>
 
 
@@ -428,13 +436,13 @@ By repeating this process (e.g., 2 layers), a node can gather information from i
 <p align="center">
   <img src="docs/imgs/msg_passing.jpg" alt="">
   <br>
-  <i>Figure 11: 1-hop message passing overview.</i>
+  <i>Figure 12: 1-hop message passing overview.</i>
 </p>
 
 <p align="center">
   <img src="docs/imgs/gnn_example.jpg" alt="">
   <br>
-  <i>Figure 12: 2-hop message passing overview.</i>
+  <i>Figure 13: 2-hop message passing overview.</i>
 </p>
 
 
@@ -455,7 +463,7 @@ First, we project the node features into a hidden space. This is a standard line
 <p align="center">
   <img src="docs/imgs/lin.jpg" alt="">
   <br>
-  <i>Figure 13: Linear transformation of node features.</i>
+  <i>Figure 14: Linear transformation of node features.</i>
 </p>
 
 
@@ -494,7 +502,7 @@ This allows us to pre-calculate a "source score" and a "target score" for every 
 <p align="center">
   <img src="docs/imgs/attn_v2.jpg" alt="">
   <br>
-  <i>Figure 14: New hidden state calculation.</i>
+  <i>Figure 15: New hidden state calculation.</i>
 </p>
 
 
@@ -692,8 +700,8 @@ def train():
         out = model(batch.x, batch.edge_index)
         
         # 2. Slicing
-        # We strictly calculate loss on the 'batch_size' target nodes.
-        # The remaining nodes are just there to provide context (message passing).
+        # We strictly calculate loss on the 'batch_size' target nodes
+        # The remaining nodes are just there to provide context
         target_out = out[:batch.batch_size]
         target_y = batch.y[:batch.batch_size]
         
@@ -853,7 +861,7 @@ We projected these vectors into 2D space using **UMAP**.
 <p align="center">
   <img src="docs/imgs/latent_space_of_wiki.jpg" alt="UMAP projection of node embeddings" style="border-radius: 5px;">
   <br>
-  <i>Figure 15: UMAP projection of the learned graph embeddings.</i>
+  <i>Figure 16: UMAP projection of the learned graph embeddings.</i>
 </p>
 
 The visualization confirms that the GNN successfully pulled semantically related articles together, creating distinct **"islands of meaning"**:
@@ -873,7 +881,7 @@ To demonstrate this, we built an interactive web application using **Streamlit**
 <p align="center">
   <img src="docs/imgs/gnn_review_720.gif" alt="Streamlit App Demo showing semantic search" style="border:1px solid #ddd; border-radius: 5px;">
   <br>
-  <i>Figure 16: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i>
+  <i>Figure 17: Our Streamlit prototype powered by GNN embeddings. The source code for the application is available in our <a href="https://github.com/lolyhop/gnn-wiki-project">GitHub repository</a>.</i>
 </p>
 
 ### How it works under the hood
