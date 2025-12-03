@@ -228,7 +228,7 @@ We freeze the SciBERT model (this means we do not train it) and encode the text 
 
 To train a GNN, we cannot simply feed raw JSONs or CSVs into the model. We must translate our data into the language of tensors, specifically formatted for **PyTorch Geometric (PyG)**.
 
-> You can find the full preprocessing pipeline in our [Google Colab Notebook](https://colab.research.google.com/drive/1aXbaBVGTfauaGU-8SEtjwcFw3JxKjd1d?usp=sharing).
+> You can find the code for data preparation in our [Google Colab Notebook](https://colab.research.google.com/drive/1aXbaBVGTfauaGU-8SEtjwcFw3JxKjd1d?usp=sharing).
 
 ### Understanding the Data Object
 
