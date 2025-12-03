@@ -179,7 +179,7 @@ This process yielded a high-quality dataset with **8 distinct classes** (7 topic
 
 We must now restore the structural integrity of our graph. The aggressive filtering in Section 3 removed "bridge" nodes, turning a connected web into thousands of isolated islands. A GNN cannot learn effective message passing on such graphs. To fix this, we introduce the following techniques.
 
-> You can fin the code for graph reconstruction in our **[Google Colab Notebook](https://colab.research.google.com/drive/1Sy4_3OqWjCyaQsQgO8nSRE6iNGe8G1BD?usp=sharing)**
+> You can find the code for graph reconstruction in our **[Google Colab Notebook](https://colab.research.google.com/drive/1Sy4_3OqWjCyaQsQgO8nSRE6iNGe8G1BD?usp=sharing)**
 
 ### Connecting 2-hop neighbors via virtual edges
 
