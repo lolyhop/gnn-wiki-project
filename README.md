@@ -102,7 +102,7 @@ NOISE_KEYWORDS = [
 If an article's categories contained any of these terms, we cut the node.
 
 <p align="center">
-  <img src="docs/imgs/funnel.jpg" alt="">
+  <img src="docs/imgs/funnel.jpg" alt="" width="350">
   <br>
   <i>Figure 2: Domain Scoping Funnel.</i>
 </p>
