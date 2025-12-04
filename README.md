@@ -944,6 +944,8 @@ ___
 *   **[Project Documentation]**: [GitHub link](https://github.com/lolyhop/gnn-wiki-project/blob/main/docs/documentation.md)
 *   **[Dataset Download]**: [Google Drive Link](https://drive.google.com/drive/folders/1meiA2D5PodBqxQUNpKZLzJsVJWprVvcR?usp=share_link)
 *   **[Colab: Wiki Parsing]**: [Open Notebook](https://colab.research.google.com/drive/1XCorcXaWqd1anPIBGDZwX5FJ5-tRcokF?usp=sharing)
+*   **[Colab: Automated Labeling Pipeline]**: [Open Notebook](https://colab.research.google.com/drive/1c55d5NWsLDx1TeKmOrYUJJ4kTc5ZbWNG?usp=sharing)
+*   **[Colab: LLM-As-A-Judge]**: [Open Notebook](https://colab.research.google.com/drive/1U0A6_poJUMYdZmQD6BaIglO3TnMLDRrd?usp=sharing)
 *   **[Colab: PyG Data Preparation]**: [Open Notebook](https://colab.research.google.com/drive/1aXbaBVGTfauaGU-8SEtjwcFw3JxKjd1d?usp=sharing)
 *   **[Colab: GAT Training]**: [Open Notebook](https://colab.research.google.com/drive/1HtTH3sfeoHuLtG2Eb3iSBexwzfNZgO9N?usp=sharing)
 *   **[Colab: MLP Baseline]**: [Open Notebook](https://colab.research.google.com/drive/1P3bQPCN0sHZVXfhtaTaeC9YE9cChrkU1?usp=sharing)

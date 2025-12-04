@@ -14,6 +14,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from torch_geometric.data import Data
 from torch_geometric.nn import GATConv
 from torch_geometric.utils import to_networkx
+from sklearn.metrics.pairwise import euclidean_distances
 from streamlit_agraph import agraph, Node, Edge, Config
 
 # Configuration
@@ -106,6 +107,7 @@ def load_system() -> Tuple[Data, List[str], Dict[str, Any], np.ndarray]:
         else:
             raise ValueError("Unknown model file format")
 
+        print("[INFO] The model has been successfully loaded!")
         model.eval()
 
         # 4. Generate Embeddings
@@ -303,11 +305,12 @@ def render_content_page(
         st.markdown("### 🧠 You might want to read")
         st.info("AI-powered suggestions based on Graph Embeddings.")
 
-        # Cosine Sim
         target_vec = embeddings[node_idx].reshape(1, -1)
-        sims = cosine_similarity(target_vec, embeddings)[0]
+        dists = euclidean_distances(target_vec, embeddings)[0]
 
         # Top 6 excluding self
+        score_max = dists.max()
+        sims = 1 - dists / score_max
         top_indices = np.argsort(sims)[::-1][1:7]
 
         for idx in top_indices:
